@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Play Memory Match at LAB-Z Arcade. Find every matching pair in this neon card puzzle.">
+  <title>Memory Match — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="memory-match.css">
+  <script src="memory-match.js" defer></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>LAB-Z <strong>Arcade</strong></span></a>
+  </header>
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <header class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> Puzzle · Find the pairs</p>
+        <h1 id="game-title">Memory <span>Match</span></h1>
+        <p>Flip, focus, and find every matching pair.</p>
+      </header>
+      <section class="level-panel" id="level-panel" aria-labelledby="level-title">
+        <p class="panel-kicker">PICK YOUR CHALLENGE</p>
+        <h2 id="level-title">Choose a level</h2>
+        <div class="level-choices" role="group" aria-label="Choose level">
+          <button class="level-button" type="button" data-level="easy" aria-pressed="false"><strong>Easy</strong><span>4 × 3</span></button>
+          <button class="level-button is-selected" type="button" data-level="medium" aria-pressed="true"><strong>Medium</strong><span>4 × 4</span></button>
+          <button class="level-button" type="button" data-level="hard" aria-pressed="false"><strong>Hard</strong><span>6 × 4</span></button>
+        </div>
+        <button class="primary-button" id="start-button" type="button">Start Game</button>
+        <p class="level-hint">Match all pairs in as few moves as you can.</p>
+      </section>
+      <section class="play-panel" id="play-panel" hidden aria-label="Memory Match game">
+        <div class="game-toolbar">
+          <span class="level-label" id="current-level">Medium · 4 × 4</span>
+          <div class="game-stats" aria-label="Game stats">
+            <div class="stat"><span>Moves</span><strong id="moves">0</strong></div>
+            <div class="stat"><span>Time</span><strong id="timer">0:00</strong></div>
+            <div class="stat"><span>Best</span><strong id="best">—</strong></div>
+          </div>
+        </div>
+        <div class="card-grid medium" id="card-grid" role="group" aria-label="Memory cards"></div>
+        <div class="game-actions">
+          <button class="secondary-button" id="restart-button" type="button">Restart</button>
+          <button class="secondary-button" id="change-level-button" type="button">Change level</button>
+        </div>
+      </section>
+      <div class="win-overlay" id="win-overlay" hidden>
+        <div class="win-panel" role="dialog" aria-modal="true" aria-labelledby="win-title">
+          <span class="win-icon" aria-hidden="true">✦</span>
+          <p class="panel-kicker">ALL PAIRS FOUND</p>
+          <h2 id="win-title">Beautifully done!</h2>
+          <p id="win-message">You matched them all.</p>
+          <button class="primary-button" id="play-again-button" type="button">Play Again</button>
+        </div>
+      </div>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+  </main>
+  <footer class="game-footer"><span>LAB-Z Arcade</span><span>Find your next favorite game.</span></footer>
+</body>
+</html>

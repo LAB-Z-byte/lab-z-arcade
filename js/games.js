@@ -23,11 +23,22 @@ window.LABZ_GAMES = [
     glyph: "♞"
   },
   {
+    title: "Tic-Tac-Toe",
+    description: "A familiar little strategy game, with a clever computer opponent.",
+    categories: ["puzzle"],
+    art: "chess",
+    glyph: "✕",
+    playable: true,
+    url: "games/tic-tac-toe/index.html"
+  },
+  {
     title: "Memory Match",
     description: "Flip, focus, and find every matching pair before time runs out.",
     categories: ["puzzle", "arcade"],
     art: "memory",
-    glyph: "▣"
+    glyph: "▣",
+    playable: true,
+    url: "games/memory-match/index.html"
   },
   {
     title: "Space Blaster",

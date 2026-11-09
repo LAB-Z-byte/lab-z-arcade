@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Play Tic-Tac-Toe at LAB-Z Arcade. Challenge a computer opponent or play together on one device.">
+  <title>Tic-Tac-Toe — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="tic-tac-toe.css">
+  <script src="tic-tac-toe.js" defer></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>LAB-Z <strong>Arcade</strong></span></a>
+  </header>
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <header class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> Puzzle · Head to head</p>
+        <h1 id="game-title">Tic-<span>Tac-Toe</span></h1>
+        <p>Three in a row. One more round?</p>
+      </header>
+      <div class="game-panel">
+        <div class="setup-panel" id="setup-panel">
+          <p class="panel-kicker" id="setup-kicker">CHOOSE YOUR GAME</p>
+          <h2 id="setup-title">How do you want to play?</h2>
+          <div class="choice-row mode-choices" id="mode-choices">
+            <button class="choice-button" type="button" data-mode="computer">Single Player <span>vs Computer</span></button>
+            <button class="choice-button" type="button" data-mode="local">Two Players <span>same device</span></button>
+          </div>
+          <div class="setup-options" id="setup-options" hidden>
+            <fieldset class="option-group">
+              <legend>Choose difficulty</legend>
+              <div class="choice-row">
+                <button class="choice-button difficulty-choice" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+                <button class="choice-button difficulty-choice is-selected" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
+                <button class="choice-button difficulty-choice" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+              </div>
+            </fieldset>
+            <fieldset class="option-group">
+              <legend>Pick your symbol <span>X always goes first</span></legend>
+              <div class="choice-row">
+                <button class="choice-button symbol-choice is-selected" type="button" data-symbol="X" aria-pressed="true">X <span>goes first</span></button>
+                <button class="choice-button symbol-choice" type="button" data-symbol="O" aria-pressed="false">O <span>computer starts</span></button>
+              </div>
+            </fieldset>
+            <button class="primary-button" id="start-button" type="button">Start Game</button>
+          </div>
+        </div>
+
+        <div class="play-panel" id="play-panel" hidden>
+          <div class="play-toolbar">
+            <span class="mode-label" id="mode-label">Single Player · Medium</span>
+            <span class="turn-label" id="turn-label" aria-live="polite">X's turn</span>
+          </div>
+          <div class="board" id="board" role="group" aria-label="Tic-Tac-Toe board">
+            <button class="cell" type="button" data-cell="0" aria-label="Row 1, column 1, empty"></button>
+            <button class="cell" type="button" data-cell="1" aria-label="Row 1, column 2, empty"></button>
+            <button class="cell" type="button" data-cell="2" aria-label="Row 1, column 3, empty"></button>
+            <button class="cell" type="button" data-cell="3" aria-label="Row 2, column 1, empty"></button>
+            <button class="cell" type="button" data-cell="4" aria-label="Row 2, column 2, empty"></button>
+            <button class="cell" type="button" data-cell="5" aria-label="Row 2, column 3, empty"></button>
+            <button class="cell" type="button" data-cell="6" aria-label="Row 3, column 1, empty"></button>
+            <button class="cell" type="button" data-cell="7" aria-label="Row 3, column 2, empty"></button>
+            <button class="cell" type="button" data-cell="8" aria-label="Row 3, column 3, empty"></button>
+            <span class="win-line" id="win-line" aria-hidden="true"></span>
+          </div>
+          <div class="scoreboard" aria-label="Match score">
+            <div class="score-item"><span id="score-x-label">Player X</span><strong id="score-x">0</strong></div>
+            <div class="score-item"><span>Draws</span><strong id="score-draws">0</strong></div>
+            <div class="score-item"><span id="score-o-label">Player O</span><strong id="score-o">0</strong></div>
+          </div>
+          <div class="game-actions">
+            <button class="secondary-button" id="restart-button" type="button">Restart round</button>
+            <button class="secondary-button" id="change-mode-button" type="button">Change mode</button>
+          </div>
+          <p class="game-instructions" id="game-instructions">Choose an empty square to place your X or O.</p>
+        </div>
+      </div>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+  </main>
+  <footer class="game-footer"><span>LAB-Z Arcade</span><span>Find your next favorite game.</span></footer>
+</body>
+</html>
