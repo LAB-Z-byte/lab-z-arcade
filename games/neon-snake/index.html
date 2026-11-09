@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Play Neon Snake, a glowing grid arcade game from LAB-Z Arcade.">
+  <title>Neon Snake — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="snake.css">
+  <script src="snake.js" defer></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>LAB-Z <strong>Arcade</strong></span>
+    </a>
+  </header>
+
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <div class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> Arcade · Neon Snake</p>
+        <h1 id="game-title">Neon <span>Snake</span></h1>
+        <p class="game-intro">Chase the glow. Grow your tail. Don't get boxed in.</p>
+      </div>
+
+      <div class="game-stats" aria-label="Game scores">
+        <div class="score-card"><span>Score</span><strong id="score">0</strong></div>
+        <div class="score-card"><span>Best</span><strong id="high-score">0</strong></div>
+      </div>
+
+      <div class="board-wrap" id="game-container">
+        <canvas id="game-canvas" width="600" height="500" tabindex="0" aria-label="Neon Snake game board. Use arrow keys or WASD to move, and Space or P to pause."></canvas>
+        <div class="game-overlay" id="game-overlay">
+          <div class="overlay-panel">
+            <span class="overlay-icon" id="overlay-icon" aria-hidden="true">↝</span>
+            <p class="overlay-eyebrow" id="overlay-eyebrow">READY PLAYER ONE</p>
+            <h2 id="overlay-title">Ready to play?</h2>
+            <p id="overlay-message">Use the arrow keys or WASD to steer. Eat the glowing orbs to grow. Avoid the walls and your tail.</p>
+            <button class="primary-button" id="overlay-action" type="button">Start Game</button>
+            <p class="overlay-hint">You can also swipe to steer on touch screens.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="game-controls">
+        <p class="keyboard-hint"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>Move</span><i></i><kbd>Space</kbd> / <kbd>P</kbd> <span>Pause</span></p>
+        <div class="control-buttons">
+          <button class="secondary-button" id="pause-button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
+          <button class="secondary-button" id="restart-button" type="button"><span aria-hidden="true">↻</span> Restart</button>
+        </div>
+      </div>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">Ready to play.</p>
+    </section>
+  </main>
+  <footer class="game-footer"><span>LAB-Z Arcade</span><span>Find your next favorite game.</span></footer>
+</body>
+</html>

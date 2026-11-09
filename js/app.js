@@ -37,15 +37,17 @@
 
     gameGrid.innerHTML = matchingGames.map((game) => `
       <article class="game-card">
-        <div class="game-art" data-art="${escapeHtml(game.art)}" aria-hidden="true">
-          <span class="game-glyph">${escapeHtml(game.glyph)}</span>
-          <span class="game-badge">Coming Soon</span>
+        <div class="game-art" data-art="${escapeHtml(game.art)}">
+          <span class="game-glyph" aria-hidden="true">${escapeHtml(game.glyph)}</span>
+          ${game.playable && game.url
+            ? `<a class="game-badge game-play-link" href="${escapeHtml(game.url)}" aria-label="Play ${escapeHtml(game.title)}">Play <span aria-hidden="true">↗</span></a>`
+            : '<span class="game-badge">Coming Soon</span>'}
         </div>
         <div class="game-info">
           <h3>${escapeHtml(game.title)}</h3>
           <p>${escapeHtml(game.description)}</p>
           <div class="game-meta">
-            <span>In development</span>
+            <span>${game.playable ? "Playable now" : "In development"}</span>
             <span class="game-categories">${game.categories.map((category) => `<span class="game-tag">${escapeHtml(category)}</span>`).join("")}</span>
           </div>
         </div>

@@ -175,6 +175,9 @@ h2 { margin-bottom: 0; font-size: clamp(32px, 4vw, 43px); line-height: 1.15; }
 .game-art[data-art="zombie"] .game-glyph { font-size: 64px; }
 .game-badge { position: absolute; top: 13px; right: 13px; display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border: 1px solid rgba(255,255,255,.13); border-radius: 20px; background: rgba(10,12,24,.72); color: #d5d4e6; font-size: 9px; font-weight: 700; letter-spacing: .04em; backdrop-filter: blur(8px); }
 .game-badge::before { width: 5px; height: 5px; border-radius: 50%; background: #b59aff; box-shadow: 0 0 8px #a77bff; content: ""; }
+.game-play-link { border-color: rgba(98,229,238,.36); background: rgba(10,23,37,.84); color: #aaf8fa; transition: background .2s ease, box-shadow .2s ease; }
+.game-play-link::before { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.game-play-link:hover { background: rgba(37,71,91,.9); box-shadow: 0 0 18px rgba(98,229,238,.22); }
 .game-info { padding: 18px 18px 17px; }
 .game-info h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 17px; letter-spacing: -.035em; }
 .game-info p { min-height: 42px; margin: 0 0 15px; color: var(--muted); font-size: 12px; line-height: 1.7; }

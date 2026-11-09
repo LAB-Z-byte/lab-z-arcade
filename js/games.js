@@ -4,7 +4,9 @@ window.LABZ_GAMES = [
     description: "Chase the glow, grow your tail, and see how long you can last.",
     categories: ["arcade", "action"],
     art: "snake",
-    glyph: "↝"
+    glyph: "↝",
+    playable: true,
+    url: "games/neon-snake/index.html"
   },
   {
     title: "Garden Guardians",
