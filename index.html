@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Discover your next favorite browser game at LAB-Z Arcade. A home for bold, original games—coming soon.">
+  <title>LAB-Z Arcade — Your Next Favorite Game Starts Here</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script src="js/games.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="top">
+    <nav class="navbar page-shell" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="LAB-Z Arcade home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>LAB-Z <strong>Arcade</strong></span>
+      </a>
+      <button class="menu-toggle icon-button" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Open navigation menu">
+        <span></span><span></span>
+      </button>
+      <div class="nav-panel" id="primary-menu">
+        <ul class="nav-links">
+          <li><a href="#top">Home</a></li>
+          <li><a href="#games">Explore Games</a></li>
+          <li><a href="#categories">Categories</a></li>
+          <li><a href="#about">About</a></li>
+        </ul>
+        <div class="nav-search">
+          <label class="sr-only" for="game-search">Search games</label>
+          <input id="game-search" class="search-input" type="search" placeholder="Search games..." autocomplete="off" tabindex="-1">
+          <button class="search-toggle icon-button" type="button" aria-label="Open game search" aria-expanded="false" aria-controls="game-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.4 15.4 4.2 4.2"></path></svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero page-shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span> A new world of play is loading</p>
+        <h1 id="hero-title">Your Next Favorite Game <span>Starts Here.</span></h1>
+        <p class="hero-description">Discover a growing collection of original games made for quick breaks, big ideas, and one-more-round kind of nights.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#games">Explore Games <span aria-hidden="true">↗</span></a>
+          <a class="button button-quiet" href="#about">Discover More <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-note"><span class="note-line"></span> New experiences are on the way</div>
+      </div>
+      <div class="hero-art" role="img" aria-label="Abstract neon arcade portal with floating geometric shapes">
+        <div class="art-orbit orbit-one"></div>
+        <div class="art-orbit orbit-two"></div>
+        <div class="art-glow"></div>
+        <div class="art-core"><span class="core-symbol">L<span>Z</span></span><span class="core-caption">INSERT COIN<br>TO BEGIN</span></div>
+        <span class="float-shape shape-diamond"></span>
+        <span class="float-shape shape-ring"></span>
+        <span class="float-shape shape-cube" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="art-spark spark-one"></span><span class="art-spark spark-two"></span><span class="art-spark spark-three"></span>
+        <span class="art-label label-left">PLAY<br><b>BEYOND</b></span>
+        <span class="art-label label-right">LVL. <b>001</b></span>
+      </div>
+    </section>
+
+    <section class="featured-section section-space" id="games" aria-labelledby="games-title">
+      <div class="page-shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">The starting lineup</p>
+            <h2 id="games-title">Featured <span>Games</span></h2>
+          </div>
+          <p class="section-intro">Fresh ideas. New worlds. All currently in the works.</p>
+        </div>
+        <div class="game-grid" id="game-grid" aria-live="polite"></div>
+        <p class="filter-empty" id="filter-empty" hidden>No games match that search. Try another title or category.</p>
+      </div>
+    </section>
+
+    <section class="category-section section-space" id="categories" aria-labelledby="categories-title">
+      <div class="page-shell">
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="eyebrow">Find your kind of fun</p>
+            <h2 id="categories-title">Choose your <span>adventure</span></h2>
+          </div>
+        </div>
+        <div class="category-list" role="group" aria-label="Filter games by category">
+          <button class="category-chip is-active" type="button" data-category="all" aria-pressed="true"><span aria-hidden="true">✦</span> All Games</button>
+          <button class="category-chip" type="button" data-category="arcade" aria-pressed="false"><span aria-hidden="true">◈</span> Arcade</button>
+          <button class="category-chip" type="button" data-category="strategy" aria-pressed="false"><span aria-hidden="true">⌘</span> Strategy</button>
+          <button class="category-chip" type="button" data-category="puzzle" aria-pressed="false"><span aria-hidden="true">▦</span> Puzzle</button>
+          <button class="category-chip" type="button" data-category="action" aria-pressed="false"><span aria-hidden="true">➤</span> Action</button>
+          <button class="category-chip" type="button" data-category="multiplayer" aria-pressed="false"><span aria-hidden="true">◎</span> Multiplayer</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="recent-section section-space" aria-labelledby="recent-title">
+      <div class="page-shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Just dropped</p>
+            <h2 id="recent-title">Recently <span>Added</span></h2>
+          </div>
+        </div>
+        <div class="recent-empty">
+          <div class="empty-icon" aria-hidden="true"><span>+</span></div>
+          <p class="empty-kicker">Your next obsession goes here</p>
+          <p>New games will show up here as soon as they launch. Check back soon.</p>
+          <span class="coming-soon-pill"><span class="status-dot"></span> First drop in progress</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section section-space" id="about" aria-labelledby="about-title">
+      <div class="page-shell about-panel">
+        <div class="about-copy">
+          <p class="eyebrow">Welcome to the arcade</p>
+          <h2 id="about-title">Small breaks.<br><span>Big adventures.</span></h2>
+          <p>LAB-Z Arcade is a home for playful, original browser games. We're building a place where jumping in is easy and finding your next favorite is part of the fun.</p>
+          <a class="text-link" href="#games">See what's in the works <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="stats-grid" aria-label="Arcade details">
+          <div class="stat-card"><span class="stat-icon" aria-hidden="true">✦</span><strong>Coming soon</strong><span>Games in the lineup</span></div>
+          <div class="stat-card"><span class="stat-icon" aria-hidden="true">◉</span><strong>Coming soon</strong><span>Players welcomed</span></div>
+          <div class="stat-card"><span class="stat-icon" aria-hidden="true">⌁</span><strong>Coming soon</strong><span>New worlds to explore</span></div>
+          <div class="stat-card"><span class="stat-icon" aria-hidden="true">∞</span><strong>In progress</strong><span>Fun, without the fuss</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="page-shell footer-main">
+      <div class="footer-brand">
+        <a class="brand" href="#top" aria-label="LAB-Z Arcade home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>LAB-Z <strong>Arcade</strong></span>
+        </a>
+        <p>A little more play in your day.</p>
+      </div>
+      <div class="footer-nav">
+        <p class="footer-label">Explore</p>
+        <a href="#games">Games</a>
+        <a href="#categories">Categories</a>
+        <a href="#about">About us</a>
+      </div>
+      <div class="footer-nav">
+        <p class="footer-label">Find us</p>
+        <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+      <a class="back-to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    </div>
+    <div class="page-shell footer-bottom">
+      <span>© <span id="current-year"></span> LAB-Z Arcade. All rights reserved.</span>
+      <span class="footer-status"><span class="status-dot"></span> The arcade is powering up</span>
+    </div>
+  </footer>
+</body>
+</html>
