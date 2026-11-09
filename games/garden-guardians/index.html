@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Protect an enchanted garden in Garden Guardians, an original tower defense game from LAB-Z Arcade.">
+  <title>Garden Guardians — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="garden-guardians.css">
+  <script src="garden-guardians.js" defer></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>LAB-Z <strong>Arcade</strong></span>
+    </a>
+  </header>
+
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <div class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> Strategy · Garden Guardians</p>
+        <h1>Garden <span>Guardians</span></h1>
+        <p class="game-intro">Plant your defenses. Keep the wilds beyond the garden gate.</p>
+      </div>
+
+      <div class="game-toolbar" aria-label="Game statistics">
+        <div class="stat"><span>Garden</span><strong id="health-value">20 / 20</strong></div>
+        <div class="stat"><span>Coins</span><strong id="coins-value">150</strong></div>
+        <div class="stat"><span>Wave</span><strong id="wave-value">—</strong></div>
+        <div class="stat"><span>Score</span><strong id="score-value">0</strong></div>
+        <div class="stat"><span>Best <span id="difficulty-label">Medium</span></span><strong id="best-value">0</strong></div>
+      </div>
+
+      <div class="board-wrap" id="board-wrap">
+        <canvas id="game-canvas" width="960" height="600" tabindex="0" aria-label="Garden Guardians game board. Choose a tower, then select an open spot beside the path to place it. Use arrow keys to select a tile and Enter to place."></canvas>
+        <div class="game-overlay" id="game-overlay">
+          <section class="overlay-panel" aria-labelledby="overlay-title">
+            <span class="overlay-icon" id="overlay-icon" aria-hidden="true">❋</span>
+            <p class="overlay-eyebrow" id="overlay-eyebrow">A GARDEN NEEDS YOU</p>
+            <h2 id="overlay-title">Guard the garden.</h2>
+            <p id="overlay-message">Build a line of flower towers along the winding trail. Defeat each wave before the creatures reach your garden.</p>
+            <div class="difficulty-picker" role="group" aria-label="Choose difficulty">
+              <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+              <button class="difficulty-button is-selected" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
+              <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+            </div>
+            <button class="primary-button" id="overlay-action" type="button">Start Defending</button>
+            <button class="change-difficulty-button" id="change-difficulty-button" type="button" hidden>Change difficulty</button>
+            <p class="overlay-hint">Pick a tower, then place it beside the path. Click a tower to upgrade or sell.</p>
+          </section>
+        </div>
+      </div>
+
+      <section class="build-panel" aria-label="Build and manage towers">
+        <div class="tower-options" role="group" aria-label="Choose a tower to place">
+          <button class="tower-card is-selected" type="button" data-tower="bloom" aria-pressed="true">
+            <span class="tower-icon bloom-icon" aria-hidden="true">✿</span>
+            <span class="tower-copy"><strong>Bloom</strong><small>Rapid · 55 coins</small></span>
+            <span class="tower-cost">55</span>
+          </button>
+          <button class="tower-card" type="button" data-tower="thorn" aria-pressed="false">
+            <span class="tower-icon thorn-icon" aria-hidden="true">✦</span>
+            <span class="tower-copy"><strong>Thorn</strong><small>Long range · 80 coins</small></span>
+            <span class="tower-cost">80</span>
+          </button>
+          <button class="tower-card" type="button" data-tower="dew" aria-pressed="false">
+            <span class="tower-icon dew-icon" aria-hidden="true">◉</span>
+            <span class="tower-copy"><strong>Dew</strong><small>Slows · 70 coins</small></span>
+            <span class="tower-cost">70</span>
+          </button>
+        </div>
+        <div class="tower-details" id="tower-details" aria-live="polite">
+          <span class="detail-title" id="detail-title">Bloom selected</span>
+          <span class="detail-description" id="detail-description">Rapid petals. Choose an open tile beside the trail.</span>
+          <div class="detail-actions" id="detail-actions" hidden>
+            <button class="secondary-button" id="upgrade-button" type="button">Upgrade</button>
+            <button class="secondary-button sell-button" id="sell-button" type="button">Sell</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="game-controls">
+        <p class="keyboard-hint"><kbd>1</kbd>–<kbd>3</kbd><span>Choose tower</span><i></i><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><span>Select tile</span><i></i><kbd>Enter</kbd><span>Place</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause</span></p>
+        <div class="control-buttons">
+          <button class="secondary-button" id="pause-button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
+          <button class="secondary-button" id="restart-button" type="button"><span aria-hidden="true">↻</span> Restart</button>
+        </div>
+      </div>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">Choose a difficulty and start defending.</p>
+    </section>
+  </main>
+  <footer class="game-footer"><span>LAB-Z Arcade</span><span>Find your next favorite game.</span></footer>
+</body>
+</html>

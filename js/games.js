@@ -13,7 +13,9 @@ window.LABZ_GAMES = [
     description: "Protect a tiny enchanted garden with thoughtful little tactics.",
     categories: ["strategy", "action"],
     art: "garden",
-    glyph: "❋"
+    glyph: "❋",
+    playable: true,
+    url: "games/garden-guardians/index.html"
   },
   {
     title: "Chess Arena",
