@@ -28,7 +28,7 @@
 
       <div class="game-stats" aria-label="Game scores">
         <div class="score-card"><span>Score</span><strong id="score">0</strong></div>
-        <div class="score-card"><span>Best</span><strong id="high-score">0</strong></div>
+        <div class="score-card"><span>Best <span class="difficulty-name" id="score-difficulty">Medium</span></span><strong id="high-score">0</strong></div>
       </div>
 
       <div class="board-wrap" id="game-container">
@@ -39,7 +39,13 @@
             <p class="overlay-eyebrow" id="overlay-eyebrow">READY PLAYER ONE</p>
             <h2 id="overlay-title">Ready to play?</h2>
             <p id="overlay-message">Use the arrow keys or WASD to steer. Eat the glowing orbs to grow. Avoid the walls and your tail.</p>
+            <div class="difficulty-picker" id="difficulty-picker" role="group" aria-label="Choose difficulty">
+              <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+              <button class="difficulty-button is-selected" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
+              <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+            </div>
             <button class="primary-button" id="overlay-action" type="button">Start Game</button>
+            <button class="change-difficulty-button" id="change-difficulty" type="button" hidden>Change difficulty</button>
             <p class="overlay-hint">You can also swipe to steer on touch screens.</p>
           </div>
         </div>
