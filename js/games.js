@@ -45,7 +45,9 @@ window.LABZ_GAMES = [
     description: "Take on the stars in a fast-paced trip through deep space.",
     categories: ["action", "arcade"],
     art: "space",
-    glyph: "➤"
+    glyph: "➤",
+    playable: true,
+    url: "games/space-blaster/index.html"
   },
   {
     title: "Zombie Survival",

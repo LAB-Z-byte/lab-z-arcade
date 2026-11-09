@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Pilot a neon starfighter through the waves of Space Blaster, an original LAB-Z Arcade game.">
+  <title>Space Blaster — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="space-blaster.css">
+  <script src="space-blaster.js" defer></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>LAB-Z <strong>Arcade</strong></span>
+    </a>
+  </header>
+
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <div class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> Arcade · Space Blaster</p>
+        <h1 id="game-title">Space <span>Blaster</span></h1>
+        <p class="game-intro">Hold the line. Clear the waves. Take down the boss.</p>
+      </div>
+
+      <div class="game-toolbar" aria-label="Run statistics">
+        <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+        <div class="stat"><span>Best <span id="score-difficulty">Medium</span></span><strong id="high-score">0</strong></div>
+        <div class="stat"><span>Wave</span><strong id="wave">1</strong></div>
+        <div class="stat"><span>Lives</span><strong id="lives" aria-label="3 lives">♥ ♥ ♥</strong></div>
+      </div>
+      <div class="powerup-indicators" id="powerup-indicators" aria-live="polite"></div>
+
+      <div class="board-wrap" id="game-container">
+        <canvas id="game-canvas" width="960" height="640" tabindex="0" aria-label="Space Blaster game. Use arrow keys or WASD to move, hold Space to fire, and P or Escape to pause."></canvas>
+        <div class="game-overlay" id="game-overlay">
+          <section class="overlay-panel" aria-labelledby="overlay-title">
+            <span class="overlay-icon" id="overlay-icon" aria-hidden="true">✦</span>
+            <p class="overlay-eyebrow" id="overlay-eyebrow">READY PILOT</p>
+            <h2 id="overlay-title">The stars are calling.</h2>
+            <p id="overlay-message">Move through the lower part of the screen and hold fire. Clear each wave, collect power-ups, and watch out for a boss every fifth wave.</p>
+            <div class="difficulty-picker" id="difficulty-picker" role="group" aria-label="Choose difficulty">
+              <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+              <button class="difficulty-button is-selected" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
+              <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+            </div>
+            <button class="primary-button" id="overlay-action" type="button">Start Game</button>
+            <button class="change-difficulty-button" id="change-difficulty" type="button" hidden>Change difficulty</button>
+            <p class="overlay-hint">Move: arrows / WASD · Fire: hold Space · Pause: P / Esc</p>
+          </section>
+        </div>
+      </div>
+
+      <div class="touch-controls" aria-label="Touch controls">
+        <button class="joystick" id="joystick" type="button" aria-label="Virtual joystick to move your ship">
+          <span class="joystick-ring" aria-hidden="true"></span>
+          <span class="joystick-knob" id="joystick-knob" aria-hidden="true"></span>
+        </button>
+        <div class="touch-actions">
+          <button class="secondary-button auto-fire-button" id="auto-fire-button" type="button" aria-pressed="true">Auto-fire: On</button>
+          <button class="fire-button" id="fire-button" type="button" aria-label="Fire lasers">FIRE</button>
+          <button class="secondary-button" id="touch-pause-button" type="button">Pause</button>
+        </div>
+      </div>
+
+      <div class="game-controls">
+        <p class="keyboard-hint"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span><i></i><kbd>Space</kbd><span>Fire</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause</span></p>
+        <div class="control-buttons">
+          <button class="secondary-button" id="pause-button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
+          <button class="secondary-button" id="restart-button" type="button"><span aria-hidden="true">↻</span> Restart</button>
+        </div>
+      </div>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">Ready to play.</p>
+    </section>
+  </main>
+  <footer class="game-footer"><span>LAB-Z Arcade</span><span>Find your next favorite game.</span></footer>
+</body>
+</html>
