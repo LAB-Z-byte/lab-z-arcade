@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Hold the line in Zombie Survival, an original top-down survival shooter from LAB-Z Arcade.">
+  <title>Zombie Survival — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="zombie-survival.css">
+  <script src="zombie-survival.js" defer></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>LAB-Z <strong>Arcade</strong></span>
+    </a>
+  </header>
+
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <div class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> Action · Zombie Survival</p>
+        <h1 id="game-title">Zombie <span>Survival</span></h1>
+        <p class="game-intro">Keep moving. Hold the line. Make it to the next wave.</p>
+      </div>
+
+      <div class="game-toolbar" aria-label="Run statistics">
+        <div class="stat health-stat"><span>Health</span><div class="health-track" aria-label="Health"><span id="health-bar"></span></div><strong id="health-value">100 / 100</strong></div>
+        <div class="stat"><span>Weapon</span><strong id="weapon-value">Pistol</strong></div>
+        <div class="stat"><span>Ammo</span><strong id="ammo-value">12 / 48</strong></div>
+        <div class="stat"><span>Wave</span><strong id="wave-value">1</strong></div>
+        <div class="stat"><span>Score</span><strong id="score-value">0</strong></div>
+        <div class="stat"><span>Best <span id="difficulty-label">Medium</span></span><strong id="best-value">0 · W0</strong></div>
+      </div>
+      <div class="xp-row">
+        <span id="level-value">LV 1</span>
+        <div class="xp-track" role="progressbar" id="xp-progress" aria-label="Experience" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="xp-bar"></span></div>
+        <span id="xp-value">0 / 40 XP</span>
+      </div>
+
+      <div class="board-wrap" id="game-container">
+        <canvas id="game-canvas" width="960" height="600" tabindex="0" aria-label="Zombie Survival. Move with WASD or arrow keys, aim with the mouse, click or hold Space to shoot, R to reload, and P or Escape to pause."></canvas>
+        <div class="game-overlay" id="game-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+          <section class="overlay-panel">
+            <span class="overlay-icon" id="overlay-icon" aria-hidden="true">☣</span>
+            <p class="overlay-eyebrow" id="overlay-eyebrow">STAY SHARP</p>
+            <h2 id="overlay-title">The night is yours to survive.</h2>
+            <p id="overlay-message">Keep moving and clear each wave. Every fifth wave brings a boss. Collect supplies, earn XP, and choose upgrades to stay alive.</p>
+            <div class="difficulty-picker" id="difficulty-picker" role="group" aria-label="Choose difficulty">
+              <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+              <button class="difficulty-button is-selected" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
+              <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+            </div>
+            <div class="upgrade-options" id="upgrade-options" hidden></div>
+            <button class="primary-button" id="overlay-action" type="button">Start Survival</button>
+            <button class="change-difficulty-button" id="change-difficulty" type="button" hidden>Change difficulty</button>
+            <p class="overlay-hint" id="overlay-hint">Move: WASD / arrows · Aim: mouse · Fire: click / Space · Reload: R · Pause: P / Esc</p>
+          </section>
+        </div>
+      </div>
+
+      <div class="weapon-row" role="group" aria-label="Select weapon">
+        <button class="weapon-button is-selected" type="button" data-weapon="pistol" aria-pressed="true"><kbd>1</kbd> Pistol</button>
+        <button class="weapon-button" type="button" data-weapon="shotgun" aria-pressed="false"><kbd>2</kbd> Shotgun</button>
+        <button class="weapon-button" type="button" data-weapon="rifle" aria-pressed="false"><kbd>3</kbd> Rifle</button>
+        <button class="secondary-button reload-button" id="reload-button" type="button"><kbd>R</kbd> Reload</button>
+      </div>
+
+      <div class="touch-controls" aria-label="Touch controls">
+        <div class="touch-stick-group">
+          <button class="joystick" id="move-stick" type="button" aria-label="Move joystick">
+            <span class="stick-label">MOVE</span><span class="joystick-knob" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="touch-stick-group aim-stick-group">
+          <button class="joystick" id="aim-stick" type="button" aria-label="Aim joystick and auto-fire">
+            <span class="stick-label">AIM + FIRE</span><span class="joystick-knob" aria-hidden="true"></span>
+          </button>
+        </div>
+        <button class="secondary-button touch-reload" id="touch-reload" type="button">Reload</button>
+        <button class="secondary-button touch-pause" id="touch-pause" type="button">Pause</button>
+      </div>
+
+      <div class="game-controls">
+        <p class="keyboard-hint"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span><i></i><kbd>Click</kbd> / <kbd>Space</kbd><span>Fire</span><i></i><kbd>1</kbd>–<kbd>3</kbd><span>Weapon</span><i></i><kbd>R</kbd><span>Reload</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause</span></p>
+        <div class="control-buttons">
+          <button class="secondary-button" id="pause-button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
+          <button class="secondary-button" id="restart-button" type="button"><span aria-hidden="true">↻</span> Restart</button>
+        </div>
+      </div>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">Choose a difficulty and start surviving.</p>
+    </section>
+  </main>
+  <footer class="game-footer"><span>LAB-Z Arcade</span><span>Find your next favorite game.</span></footer>
+</body>
+</html>

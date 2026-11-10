@@ -58,6 +58,8 @@ window.LABZ_GAMES = [
     description: "Keep your cool and outlast the night in a strange new world.",
     categories: ["action", "strategy"],
     art: "zombie",
-    glyph: "☣"
+    glyph: "☣",
+    playable: true,
+    url: "games/zombie-survival/index.html"
   }
 ];
