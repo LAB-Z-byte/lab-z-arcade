@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkmate — A modern chess experience</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./chess.js"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body>
+  <div class="loading-screen" id="loading-screen" aria-label="Loading chess">
+    <div class="loader-brand"><span class="brand-mark">♞</span><span>CHECKMATE</span></div>
+    <div class="loader-track"><span id="loader-progress"></span></div>
+    <p class="loader-tip" id="loader-tip">Control the center</p>
+  </div>
+
+  <main class="app-shell">
+    <a class="back-to-arcade" href="../../index.html">← Back to Arcade</a>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="float-piece float-one">♞</div>
+    <div class="float-piece float-two">♙</div>
+    <div class="float-piece float-three">♛</div>
+    <div class="float-piece float-four">♗</div>
+
+    <section class="menu-screen screen" id="menu-screen" aria-labelledby="menu-title">
+      <div class="menu-card glass">
+        <div class="eyebrow"><span class="eyebrow-line"></span> THE ROYAL GAME, REIMAGINED</div>
+        <div class="menu-emblem" aria-hidden="true">♞</div>
+        <h1 id="menu-title">Make your<br><span>next move.</span></h1>
+        <p class="menu-copy">A quieter kind of intensity.<br>One board. Infinite possibilities.</p>
+        <button class="primary-button" id="play-button"><span>Play</span><span class="button-arrow">↗</span></button>
+        <button class="theme-button" id="theme-toggle"><span class="theme-icon">☾</span> <span id="theme-label">Switch to light</span></button>
+        <div class="menu-foot"><span>EST. 2024</span><span>♔ &nbsp;·&nbsp; ♚</span><span>PLAY AT YOUR PACE</span></div>
+      </div>
+    </section>
+
+    <section class="game-screen screen hidden" id="game-screen" aria-label="Chess game">
+      <header class="topbar">
+        <button class="wordmark" id="menu-button" aria-label="Return to menu"><span class="wordmark-icon">♞</span> CHECKMATE</button>
+        <div class="topbar-note"><span class="live-dot"></span> LOCAL GAME</div>
+        <div class="top-actions">
+          <button class="icon-button" id="sound-button" aria-label="Mute sounds" title="Toggle sound">♫</button>
+          <button class="icon-button" id="game-theme-toggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        </div>
+      </header>
+
+      <div class="game-layout">
+        <section class="play-area">
+          <div class="board-heading">
+            <div><p class="eyebrow board-eyebrow">YOUR MATCH</p><h2>Classic game</h2></div>
+            <div class="turn-pill" id="turn-pill"><span class="turn-dot"></span><span id="turn-label">White to move</span></div>
+          </div>
+          <div class="board-wrap" id="board-wrap">
+            <div class="board" id="board" role="grid" aria-label="Chess board"></div>
+            <div class="board-flash" id="board-flash"></div>
+            <div class="check-label" id="check-label">CHECK!</div>
+          </div>
+          <div class="board-footer">
+            <button class="subtle-button" id="flip-button"><span>⇄</span> Flip board</button>
+            <span class="board-hint">Drag-free. Think freely.</span>
+          </div>
+        </section>
+
+        <aside class="side-panel glass">
+          <div class="side-heading"><div><p class="eyebrow">MATCH DETAILS</p><h2>At a glance</h2></div><span class="status-badge" id="status-badge">IN PLAY</span></div>
+          <div class="players">
+            <div class="player-row" id="white-player">
+              <span class="player-avatar white-avatar">♔</span>
+              <div class="player-meta"><strong>White</strong><span>Player one</span></div>
+              <div class="captured-tray" id="white-captured" aria-label="White captured pieces"></div>
+              <strong class="material-score" id="white-material"></strong>
+            </div>
+            <div class="player-divider"><span>VS</span></div>
+            <div class="player-row" id="black-player">
+              <span class="player-avatar black-avatar">♚</span>
+              <div class="player-meta"><strong>Black</strong><span>Player two</span></div>
+              <div class="captured-tray" id="black-captured" aria-label="Black captured pieces"></div>
+              <strong class="material-score" id="black-material"></strong>
+            </div>
+          </div>
+          <div class="moves-heading"><h3>Move history</h3><span id="move-count">0 MOVES</span></div>
+          <div class="move-list" id="move-list" aria-live="polite">
+            <div class="empty-moves"><span>♘</span><p>Your opening move<br>starts the story.</p></div>
+          </div>
+          <div class="panel-actions">
+            <button class="action-button" id="undo-button" disabled><span>↶</span> Undo</button>
+            <button class="action-button" id="restart-button"><span>⟳</span> Restart</button>
+          </div>
+          <p class="panel-note">A good move is a quiet one.</p>
+        </aside>
+      </div>
+    </section>
+
+    <div class="modal-screen hidden" id="promotion-screen" role="dialog" aria-modal="true" aria-labelledby="promotion-title">
+      <div class="promotion-card glass"><p class="eyebrow">A MOMENT OF CHOICE</p><h2 id="promotion-title">Promote your pawn</h2><p class="promotion-copy">Choose your new piece</p><div class="promotion-options" id="promotion-options"></div></div>
+    </div>
+    <div class="modal-screen hidden" id="result-screen" role="dialog" aria-modal="true" aria-labelledby="result-title">
+      <div class="result-card glass" id="result-card">
+        <div class="result-crown">♛</div><p class="eyebrow" id="result-eyebrow">A DECISIVE MOMENT</p><h2 id="result-title">Checkmate!</h2><p class="result-copy" id="result-copy">White wins</p>
+        <div class="result-actions"><button class="primary-button" id="play-again-button"><span>Play again</span><span class="button-arrow">↗</span></button><button class="secondary-button" id="result-menu-button">Back to menu</button></div>
+      </div>
+    </div>
+    <div class="confetti-layer" id="confetti-layer" aria-hidden="true"></div>
+  </main>
+  <script>
+    if ('serviceWorker' in navigator) {
+      const pageScope = new URL('./', window.location.href).href;
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => Promise.all(
+          registrations
+            .filter((registration) => registration.scope === pageScope)
+            .map((registration) => registration.unregister())
+        ))
+        .catch((error) => console.error('Chess Arena service worker cleanup failed:', error));
+    }
+  </script>
+</body>
+</html>

@@ -22,7 +22,9 @@ window.LABZ_GAMES = [
     description: "A classic battle of minds, reimagined for the digital arena.",
     categories: ["strategy", "multiplayer"],
     art: "chess",
-    glyph: "♞"
+    glyph: "♞",
+    playable: true,
+    url: "games/chess-arena/index.html"
   },
   {
     title: "Tic-Tac-Toe",
