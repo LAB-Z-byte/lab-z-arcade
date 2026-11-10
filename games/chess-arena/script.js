@@ -16,7 +16,7 @@
   let legalTargets = [];
   let lastMove = null;
   let isAnimating = false;
-  let soundEnabled = true;
+  let soundEnabled = window.LABZ?.isSoundOn?.() ?? true;
   let audioContext = null;
   let pendingPromotion = null;
   let gameStarted = false;
@@ -463,11 +463,24 @@
     $('menu-screen').classList.remove('hidden');
     gameStarted = false;
   });
-  $('sound-button').addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
+  function syncSoundButton() {
     $('sound-button').textContent = soundEnabled ? '♫' : '♪̸';
     $('sound-button').setAttribute('aria-label', soundEnabled ? 'Mute sounds' : 'Enable sounds');
+    $('sound-button').setAttribute('aria-pressed', String(soundEnabled));
+  }
+  $('sound-button').addEventListener('click', () => {
+    if (window.LABZ?.setSoundOn) {
+      window.LABZ.setSoundOn(!soundEnabled);
+    } else {
+      soundEnabled = !soundEnabled;
+      syncSoundButton();
+    }
   });
+  window.addEventListener('labz:soundchange', (event) => {
+    soundEnabled = event.detail.soundOn;
+    syncSoundButton();
+  });
+  syncSoundButton();
   window.addEventListener('resize', () => {
     if (!boardEl.children.length) return;
     const movingPiece = boardEl.querySelector('.piece.moving');

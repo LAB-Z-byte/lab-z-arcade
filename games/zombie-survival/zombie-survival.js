@@ -58,6 +58,7 @@
   const statusElement = document.querySelector("#game-status");
   const moveStick = document.querySelector("#move-stick");
   const aimStick = document.querySelector("#aim-stick");
+  const soundToggle = document.querySelector("#sound-toggle");
   const weaponButtons = [...document.querySelectorAll(".weapon-button")];
   const difficultyButtons = [...document.querySelectorAll(".difficulty-button")];
 
@@ -65,7 +66,7 @@
     canvas, context, overlay, overlayIcon, overlayEyebrow, overlayTitle, overlayMessage, overlayAction,
     overlayHint, difficultyPicker, changeDifficulty, upgradeOptions, healthValue, healthBar, weaponValue,
     ammoValue, waveValue, scoreValue, bestValue, difficultyLabel, levelValue, xpValue, xpBar, xpProgress,
-    pauseButton, restartButton, reloadButton, touchReload, touchPause, statusElement, moveStick, aimStick
+    pauseButton, restartButton, reloadButton, touchReload, touchPause, statusElement, moveStick, aimStick, soundToggle
   ];
   if (requiredElements.some((element) => !element) || weaponButtons.length !== 3 || difficultyButtons.length !== 3) {
     console.error("Zombie Survival could not initialize: required game elements or Canvas 2D support are unavailable.");
@@ -90,6 +91,7 @@
   const damageNumbers = [];
   const damageNumberPool = [];
   const cleanups = [];
+  let audioContext = null;
   const weaponState = Object.fromEntries(Object.entries(WEAPONS).map(([id, weapon]) => [
     id, { magazine: weapon.magazine, reserve: weapon.reserve }
   ]));
@@ -191,6 +193,45 @@
     xpBar.style.width = `${Math.min(100, xp / xpGoal * 100)}%`;
     xpProgress.setAttribute("aria-valuemax", String(xpGoal));
     xpProgress.setAttribute("aria-valuenow", String(xp));
+  }
+
+  function syncSoundButton() {
+    const enabled = window.LABZ?.isSoundOn?.() ?? true;
+    soundToggle.textContent = enabled ? "♫" : "♪̸";
+    soundToggle.setAttribute("aria-label", enabled ? "Mute sounds" : "Enable sounds");
+    soundToggle.setAttribute("aria-pressed", String(enabled));
+    soundToggle.title = enabled ? "Sound on" : "Sound off";
+  }
+
+  function playSound(type) {
+    if (!(window.LABZ?.isSoundOn?.() ?? true)) return;
+    try {
+      const Audio = window.AudioContext || window.webkitAudioContext;
+      if (!Audio) return;
+      if (!audioContext) audioContext = new Audio();
+      if (audioContext.state === "suspended") audioContext.resume();
+      const sounds = {
+        fire: [selectedWeapon === "shotgun" ? 125 : 240, 0.045, "square", 0.035],
+        reload: [330, 0.12, "sine", 0.045],
+        hurt: [115, 0.16, "sawtooth", 0.06],
+        kill: [480, 0.07, "triangle", 0.035]
+      };
+      const [frequency, duration, waveform, volume] = sounds[type] || sounds.fire;
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = waveform;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(45, frequency * 0.62), now + duration);
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + duration);
+    } catch (error) {
+      console.warn("Zombie Survival could not play a sound effect.", error);
+    }
   }
 
   function updateWeaponButtons() {
@@ -530,6 +571,7 @@
     ammo.magazine += amount;
     ammo.reserve -= amount;
     reloadRemaining = 0;
+    playSound("reload");
     updateHud();
   }
 
@@ -543,6 +585,7 @@
     }
     ammo.magazine -= 1;
     fireCooldown = weapon.cooldown / fireRateMultiplier;
+    playSound("fire");
     const baseAngle = Math.atan2(player.aimY, player.aimX);
     const shotCount = Math.min(weapon.pellets, WORLD.maxBullets - bullets.length);
     for (let index = 0; index < shotCount; index += 1) {
@@ -564,6 +607,7 @@
   function damagePlayer(amount) {
     if (player.invulnerable > 0 || gameState !== "playing") return;
     player.health = Math.max(0, player.health - amount);
+    playSound("hurt");
     player.invulnerable = 0.7;
     shakeRemaining = reducedMotion.matches ? 0 : 0.2;
     spawnParticle(player.x, player.y, "#ff536b", 15, 1.3);
@@ -575,6 +619,7 @@
   function killZombie(index) {
     const zombie = zombies[index];
     score += zombie.score;
+    playSound("kill");
     saveBest();
     spawnParticle(zombie.x, zombie.y, zombie.color, zombie.boss ? 36 : 10, zombie.boss ? 1.4 : 1);
     if (Math.random() < zombie.drop) {
@@ -1295,6 +1340,12 @@
     listen(restartButton, "click", startGame);
     listen(reloadButton, "click", reload);
     listen(touchReload, "click", reload);
+    listen(soundToggle, "click", () => {
+      const enabled = window.LABZ?.isSoundOn?.() ?? true;
+      window.LABZ?.setSoundOn?.(!enabled);
+      syncSoundButton();
+    });
+    listen(window, "labz:soundchange", syncSoundButton);
     weaponButtons.forEach((button) => listen(button, "click", () => selectWeapon(button.dataset.weapon)));
     listen(window, "resize", resizeCanvas);
     if ("ResizeObserver" in window) {
@@ -1310,6 +1361,7 @@
 
   bindEvents();
   loadBest();
+  syncSoundButton();
   updateWeaponButtons();
   updateHud();
   showOverlay("ready");

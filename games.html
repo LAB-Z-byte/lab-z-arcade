@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b16">
+  <meta name="description" content="Browse, search, and filter the full collection of LAB-Z Arcade browser games.">
+  <title>Explore Games — LAB-Z Arcade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script src="js/settings.js" defer></script>
+  <script src="js/games.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="top">
+    <nav class="navbar page-shell" aria-label="Main navigation">
+      <div class="logo-hanger">
+        <span class="logo-chain logo-chain-left" aria-hidden="true"></span>
+        <span class="logo-chain logo-chain-right" aria-hidden="true"></span>
+        <a class="brand" href="index.html" aria-label="LAB-Z Arcade home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>LAB-Z <strong>Arcade</strong></span>
+        </a>
+      </div>
+      <button class="menu-toggle icon-button" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Open navigation menu"><span></span><span></span></button>
+      <div class="nav-panel" id="primary-menu">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="games.html" aria-current="page">Explore Games</a></li>
+          <li><a href="categories.html">Categories</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+        <div class="nav-search">
+          <label class="sr-only" for="game-search">Search games</label>
+          <input id="game-search" class="search-input" type="search" placeholder="Search games..." autocomplete="off" tabindex="-1">
+          <button class="search-toggle icon-button" type="button" aria-label="Open game search" aria-expanded="false" aria-controls="game-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.4 15.4 4.2 4.2"></path></svg></button>
+          <button class="sound-toggle icon-button" id="sound-toggle" type="button" aria-pressed="true" aria-label="Mute sounds" title="Sound on">♫</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="featured-section section-space" aria-labelledby="games-title">
+      <div class="page-shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">The starting lineup</p>
+            <h1 class="page-title" id="games-title">Explore <span>Games</span></h1>
+          </div>
+          <p class="section-intro">Search the collection, explore categories, and save games to your favorites.</p>
+        </div>
+        <section class="collection-row" id="favorites-section" aria-labelledby="favorites-title" hidden>
+          <div class="collection-heading"><h2 class="collection-title" id="favorites-title">Favorites</h2></div>
+          <div class="game-grid collection-grid" id="favorites-grid"></div>
+        </section>
+        <section class="collection-row" id="recently-played-section" aria-labelledby="recently-played-title" hidden>
+          <div class="collection-heading">
+            <h2 class="collection-title" id="recently-played-title">Recently Played</h2>
+            <button class="text-button" id="clear-recently-played" type="button">Clear</button>
+          </div>
+          <div class="game-grid collection-grid" id="recently-played-grid"></div>
+        </section>
+        <div class="category-list game-filters" role="group" aria-label="Filter games by category">
+          <button class="category-chip is-active" type="button" data-category="all" aria-pressed="true"><span aria-hidden="true">✦</span> All Games</button>
+          <button class="category-chip" type="button" data-category="arcade" aria-pressed="false"><span aria-hidden="true">◈</span> Arcade</button>
+          <button class="category-chip" type="button" data-category="strategy" aria-pressed="false"><span aria-hidden="true">⌘</span> Strategy</button>
+          <button class="category-chip" type="button" data-category="puzzle" aria-pressed="false"><span aria-hidden="true">▦</span> Puzzle</button>
+          <button class="category-chip" type="button" data-category="action" aria-pressed="false"><span aria-hidden="true">➤</span> Action</button>
+          <button class="category-chip" type="button" data-category="multiplayer" aria-pressed="false"><span aria-hidden="true">◎</span> Multiplayer</button>
+          <button class="category-chip" type="button" data-category="favorites" aria-pressed="false"><span aria-hidden="true">♥</span> Favorites</button>
+        </div>
+        <div class="game-grid" id="game-grid" aria-live="polite"></div>
+        <p class="filter-empty" id="filter-empty" hidden>No games match that search. Try another title or category.</p>
+      </div>
+    </section>
+    <section class="recent-section section-space" aria-labelledby="recent-title">
+      <div class="page-shell">
+        <div class="section-heading">
+          <div><p class="eyebrow">Just dropped</p><h2 id="recent-title">Recently <span>Added</span></h2></div>
+        </div>
+        <div class="recent-empty">
+          <div class="empty-icon" aria-hidden="true"><span>+</span></div>
+          <p class="empty-kicker">Your next obsession goes here</p>
+          <p>New games will show up here as soon as they launch. Check back soon.</p>
+          <span class="coming-soon-pill"><span class="status-dot"></span> First drop in progress</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="page-shell footer-main">
+      <div class="footer-brand">
+        <a class="brand" href="index.html" aria-label="LAB-Z Arcade home"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>LAB-Z <strong>Arcade</strong></span></a>
+        <p>A little more play in your day.</p>
+      </div>
+      <div class="footer-nav"><p class="footer-label">Explore</p><a href="games.html">Games</a><a href="categories.html">Categories</a><a href="about.html">About us</a></div>
+      <div class="footer-nav"><p class="footer-label">Find us</p><a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
+      <a class="back-to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    </div>
+    <div class="page-shell footer-bottom"><span>© <span id="current-year"></span> LAB-Z Arcade. All rights reserved.</span><span class="footer-status"><span class="status-dot"></span> The arcade is powering up</span></div>
+  </footer>
+</body>
+</html>
