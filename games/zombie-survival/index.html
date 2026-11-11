@@ -33,6 +33,7 @@
         <div class="stat"><span>Weapon</span><strong id="weapon-value">Pistol</strong></div>
         <div class="stat"><span>Ammo</span><strong id="ammo-value">12 / 48</strong></div>
         <div class="stat"><span>Wave</span><strong id="wave-value">1</strong></div>
+        <div class="stat"><span>Region</span><strong id="region-value">Graveyard</strong></div>
         <div class="stat"><span>Score</span><strong id="score-value">0</strong></div>
         <div class="stat"><span>Best <span id="difficulty-label">Medium</span></span><strong id="best-value">0 · W0</strong></div>
       </div>
@@ -49,12 +50,13 @@
             <span class="overlay-icon" id="overlay-icon" aria-hidden="true">☣</span>
             <p class="overlay-eyebrow" id="overlay-eyebrow">STAY SHARP</p>
             <h2 id="overlay-title">The night is yours to survive.</h2>
-            <p id="overlay-message">Keep moving and clear each wave. Every fifth wave brings a boss. Collect supplies, earn XP, and choose upgrades to stay alive.</p>
+            <p id="overlay-message">Survive 10 waves in each region. Collect supplies, earn XP, and choose upgrades to stay alive.</p>
             <div class="difficulty-picker" id="difficulty-picker" role="group" aria-label="Choose difficulty">
               <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
               <button class="difficulty-button is-selected" type="button" data-difficulty="medium" aria-pressed="true">Medium</button>
               <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
             </div>
+            <div class="level-picker" id="level-picker" role="group" aria-label="Choose level"></div>
             <div class="upgrade-options" id="upgrade-options" hidden></div>
             <button class="primary-button" id="overlay-action" type="button">Start Survival</button>
             <button class="change-difficulty-button" id="change-difficulty" type="button" hidden>Change difficulty</button>
@@ -67,6 +69,9 @@
         <button class="weapon-button is-selected" type="button" data-weapon="pistol" aria-pressed="true"><kbd>1</kbd> Pistol</button>
         <button class="weapon-button" type="button" data-weapon="shotgun" aria-pressed="false"><kbd>2</kbd> Shotgun</button>
         <button class="weapon-button" type="button" data-weapon="rifle" aria-pressed="false"><kbd>3</kbd> Rifle</button>
+        <button class="weapon-button" type="button" data-weapon="smg" aria-pressed="false" disabled><kbd>4</kbd> SMG</button>
+        <button class="weapon-button" type="button" data-weapon="sniper" aria-pressed="false" disabled><kbd>5</kbd> Sniper</button>
+        <button class="weapon-button" type="button" data-weapon="grenade" aria-pressed="false" disabled><kbd>6</kbd> Grenade</button>
         <button class="secondary-button reload-button" id="reload-button" type="button"><kbd>R</kbd> Reload</button>
       </div>
 
@@ -86,7 +91,7 @@
       </div>
 
       <div class="game-controls">
-        <p class="keyboard-hint"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span><i></i><kbd>Click</kbd> / <kbd>Space</kbd><span>Fire</span><i></i><kbd>1</kbd>–<kbd>3</kbd><span>Weapon</span><i></i><kbd>R</kbd><span>Reload</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause</span></p>
+        <p class="keyboard-hint"><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span><i></i><kbd>Click</kbd> / <kbd>Space</kbd><span>Fire</span><i></i><kbd>1</kbd>–<kbd>6</kbd><span>Weapon</span><i></i><kbd>R</kbd><span>Reload</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd><span>Pause</span></p>
         <div class="control-buttons">
           <button class="secondary-button" id="pause-button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
           <button class="secondary-button" id="restart-button" type="button"><span aria-hidden="true">↻</span> Restart</button>
