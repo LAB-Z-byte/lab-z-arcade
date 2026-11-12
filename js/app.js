@@ -15,6 +15,7 @@
   const favoritesSection = document.querySelector("#favorites-section");
   const recentlyPlayedGrid = document.querySelector("#recently-played-grid");
   const recentlyPlayedSection = document.querySelector("#recently-played-section");
+  const recentlyAddedGrid = document.querySelector("#recently-added-grid");
   const clearRecentlyPlayed = document.querySelector("#clear-recently-played");
   const soundToggle = document.querySelector("#sound-toggle");
   const logoHanger = document.querySelector(".logo-hanger");
@@ -107,6 +108,7 @@
     const displayedGames = Number.isInteger(limit) && limit > 0 ? matchingGames.slice(0, limit) : matchingGames;
     gameGrid.innerHTML = displayedGames.map(cardMarkup).join("");
     if (emptyMessage) emptyMessage.hidden = matchingGames.length > 0;
+    if (recentlyAddedGrid) recentlyAddedGrid.innerHTML = games.slice(0, 1).map(cardMarkup).join("");
 
     const favoriteGames = favorites.map((id) => gameById.get(id)).filter(Boolean);
     if (favoritesSection && favoritesGrid) {

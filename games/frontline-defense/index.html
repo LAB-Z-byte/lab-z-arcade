@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111710">
+  <meta name="description" content="Hold the Green Valley perimeter in LAB-Z Frontline Defense, a modern military defense simulation.">
+  <title>LAB-Z Frontline Defense — LAB-Z Arcade</title>
+  <link rel="stylesheet" href="./frontline-defense.css">
+  <script defer src="./frontline-defense.js"></script>
+</head>
+<body>
+  <header class="game-header">
+    <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> Back to Arcade</a>
+    <a class="game-brand" href="../../index.html" aria-label="LAB-Z Arcade home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>LAB-Z <strong>Arcade</strong></span>
+    </a>
+    <button class="icon-button settings-button" id="settings-button" type="button" aria-haspopup="dialog" aria-controls="settings-dialog" aria-label="Open settings" title="Settings">⚙</button>
+  </header>
+
+  <main class="game-main">
+    <section class="game-layout" aria-labelledby="game-title">
+      <div class="game-heading">
+        <p class="eyebrow"><span class="status-dot"></span> STRATEGY · FIELD SIMULATION</p>
+        <h1 id="game-title">LAB-Z <span>Frontline Defense</span></h1>
+        <p class="game-intro">Green Valley · Sector 07 · Perimeter status: <strong id="mission-status">Awaiting deployment</strong></p>
+      </div>
+
+      <div class="tactical-bar" aria-label="Tactical status">
+        <div class="tactical-stat"><span class="stat-label">Base integrity</span><strong id="base-value">20 / 20</strong><span class="integrity-track" aria-hidden="true"><i id="integrity-bar"></i></span></div>
+        <div class="tactical-stat"><span class="stat-label">Wave</span><strong id="wave-value">—</strong></div>
+        <div class="tactical-stat"><span class="stat-label">Threats in sector</span><strong id="threat-value">0</strong></div>
+        <div class="tactical-stat"><span class="stat-label">Mission score</span><strong id="score-value">0</strong></div>
+        <div class="tactical-stat"><span class="stat-label">Endless record</span><strong id="record-value">Wave 0</strong></div>
+      </div>
+
+      <div class="board-wrap" id="board-wrap">
+        <canvas id="battlefield" width="1200" height="675" tabindex="0" aria-label="Top-down Green Valley battlefield. Drag to pan, use the mouse wheel to zoom, or use WASD and arrow keys to move the camera."></canvas>
+        <div class="map-readout" aria-hidden="true"><span>MAP GRID</span><strong id="grid-readout">E-04</strong></div>
+        <div class="overlay" id="phase-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+          <section class="overlay-panel">
+            <div class="overlay-mark" aria-hidden="true"><span>07</span></div>
+            <p class="overlay-kicker" id="overlay-kicker">TACTICAL COMMAND · GREEN VALLEY</p>
+            <h2 id="overlay-title">Hold the <span>line.</span></h2>
+            <p class="overlay-copy" id="overlay-copy">A hostile infantry column is moving through the valley. Observe the fixed approach route and protect the forward operating base.</p>
+
+            <div class="start-view" id="start-view">
+              <div class="mode-picker" role="group" aria-label="Choose operation mode">
+                <button class="mode-card is-selected" type="button" data-mode="campaign" aria-pressed="true">
+                  <span class="mode-index">01 / CAMPAIGN</span>
+                  <strong>Green Valley</strong>
+                  <span>Two-wave perimeter exercise</span>
+                </button>
+                <button class="mode-card" type="button" data-mode="endless" aria-pressed="false">
+                  <span class="mode-index">02 / ENDLESS</span>
+                  <strong>Survival</strong>
+                  <span>Hold out for as long as possible</span>
+                </button>
+              </div>
+              <div class="mission-brief" id="mission-brief">
+                <span class="brief-label">MISSION BRIEF</span>
+                <p>Protect the base through two incoming waves. Infantry that reaches the perimeter will reduce base integrity.</p>
+              </div>
+              <p class="stage-note">Stage 1 field simulation. Defensive placements and combat systems are not part of this build.</p>
+              <button class="primary-button" id="start-button" type="button">Begin campaign <span aria-hidden="true">↗</span></button>
+              <button class="text-button" id="menu-settings-button" type="button">Simulation settings</button>
+            </div>
+
+            <div class="pause-view" id="pause-view" hidden>
+              <div class="pause-summary"><span>OPERATION</span><strong id="pause-operation">Green Valley</strong><span>BASE INTEGRITY</span><strong id="pause-base">20 / 20</strong></div>
+              <button class="primary-button" id="resume-button" type="button">Resume operation <span aria-hidden="true">▶</span></button>
+              <div class="overlay-actions"><button class="secondary-button" id="pause-restart-button" type="button">Restart operation</button><button class="secondary-button" id="pause-menu-button" type="button">Return to menu</button></div>
+            </div>
+
+            <div class="result-view" id="result-view" hidden>
+              <p class="result-stamp" id="result-stamp">AFTER ACTION REPORT</p>
+              <p class="result-copy" id="result-copy"></p>
+              <div class="result-stats"><span>Waves completed<strong id="result-waves">0</strong></span><span>Final integrity<strong id="result-integrity">0 / 20</strong></span><span>Score<strong id="result-score">0</strong></span></div>
+              <button class="primary-button" id="result-restart-button" type="button">Deploy again <span aria-hidden="true">↗</span></button>
+              <button class="text-button" id="result-menu-button" type="button">Return to operation select</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="control-deck">
+        <div class="speed-control" role="group" aria-label="Simulation speed">
+          <span class="control-label">SIM SPEED</span>
+          <button class="speed-button" type="button" data-speed="0.5" aria-pressed="false">½×</button>
+          <button class="speed-button is-selected" type="button" data-speed="1" aria-pressed="true">1×</button>
+          <button class="speed-button" type="button" data-speed="2" aria-pressed="false">2×</button>
+        </div>
+        <div class="camera-controls" role="group" aria-label="Camera zoom">
+          <span class="control-label">CAMERA</span>
+          <button class="control-button" id="zoom-out-button" type="button" aria-label="Zoom out">−</button>
+          <span class="zoom-value" id="zoom-value">100%</span>
+          <button class="control-button" id="zoom-in-button" type="button" aria-label="Zoom in">+</button>
+        </div>
+        <div class="run-controls">
+          <button class="secondary-button" id="pause-button" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pause</button>
+          <button class="secondary-button" id="restart-button" type="button" disabled><span aria-hidden="true">↻</span> Restart</button>
+        </div>
+      </div>
+      <p class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows <span>Pan</span><i></i><kbd>Drag</kbd> <span>Pan</span><i></i><kbd>Wheel</kbd> <span>Zoom</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd> <span>Pause</span></p>
+      <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">Select an operation and begin the simulation.</p>
+    </section>
+  </main>
+
+  <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+    <form method="dialog" class="settings-panel">
+      <div class="settings-heading"><div><p class="overlay-kicker">SYSTEM PREFERENCES</p><h2 id="settings-title">Simulation <span>settings</span></h2></div><button class="control-button close-button" value="close" aria-label="Close settings">×</button></div>
+      <label class="setting-row" for="default-speed">
+        <span><strong>Default simulation speed</strong><small>Speed used when a new operation begins.</small></span>
+        <select id="default-speed" name="default-speed"><option value="0.5">½×</option><option value="1">1×</option><option value="2">2×</option></select>
+      </label>
+      <label class="setting-row" for="terrain-detail">
+        <span><strong>Terrain detail</strong><small>Show procedural vegetation and terrain markings.</small></span>
+        <input id="terrain-detail" name="terrain-detail" type="checkbox">
+      </label>
+      <p class="settings-saved" id="settings-saved" aria-live="polite">Preferences are saved on this device.</p>
+      <button class="primary-button settings-done" value="close">Done</button>
+    </form>
+  </dialog>
+
+  <footer class="game-footer"><span>LAB-Z ARCADE · FIELD SIMULATION</span><a href="../../games.html">Explore other games <span aria-hidden="true">↗</span></a></footer>
+</body>
+</html>

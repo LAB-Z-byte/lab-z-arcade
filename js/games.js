@@ -1,5 +1,14 @@
 window.LABZ_GAMES = [
   {
+    title: "LAB-Z Frontline Defense",
+    description: "Hold the Green Valley perimeter in a modern military defense simulation.",
+    categories: ["strategy", "action"],
+    art: "frontline",
+    glyph: "⌖",
+    playable: true,
+    url: "games/frontline-defense/index.html"
+  },
+  {
     title: "Neon Snake",
     description: "Chase the glow, grow your tail, and see how long you can last.",
     categories: ["arcade", "action"],

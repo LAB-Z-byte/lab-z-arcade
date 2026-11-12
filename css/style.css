@@ -183,12 +183,14 @@ h2 { margin-bottom: 0; font-size: clamp(32px, 4vw, 43px); line-height: 1.15; }
 .game-art[data-art="memory"] { --card-background: radial-gradient(ellipse at 50% 110%, #16415f, #152944 50%, #13182c); --glyph-glow: #62dbfa; }
 .game-art[data-art="space"] { --card-background: radial-gradient(ellipse at 50% 110%, #5b2d49, #30213d 48%, #16182e); --glyph-glow: #ff829c; }
 .game-art[data-art="zombie"] { --card-background: radial-gradient(ellipse at 50% 110%, #3c4930, #242c30 48%, #131a27); --glyph-glow: #b4e56f; }
+.game-art[data-art="frontline"] { --card-background: radial-gradient(ellipse at 50% 110%, #45553a, #27342d 48%, #161d22); --glyph-glow: #c3d88b; }
 .game-art[data-art="snake"] .game-glyph { transform: rotate(90deg); }
 .game-art[data-art="garden"] .game-glyph { transform: rotate(-8deg); }
 .game-art[data-art="chess"] .game-glyph { font-size: 82px; }
 .game-art[data-art="memory"] .game-glyph { font-size: 59px; letter-spacing: .1em; }
 .game-art[data-art="space"] .game-glyph { transform: rotate(-40deg); }
 .game-art[data-art="zombie"] .game-glyph { font-size: 64px; }
+.game-art[data-art="frontline"] .game-glyph { font-size: 82px; }
 .game-badge { position: absolute; top: 13px; right: 13px; display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border: 1px solid rgba(255,255,255,.13); border-radius: 20px; background: rgba(10,12,24,.72); color: #d5d4e6; font-size: 9px; font-weight: 700; letter-spacing: .04em; backdrop-filter: blur(8px); }
 .game-badge::before { width: 5px; height: 5px; border-radius: 50%; background: #b59aff; box-shadow: 0 0 8px #a77bff; content: ""; }
 .game-play-link { border-color: rgba(98,229,238,.36); background: rgba(10,23,37,.84); color: #aaf8fa; transition: background .2s ease, box-shadow .2s ease; }
