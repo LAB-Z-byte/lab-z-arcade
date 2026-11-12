@@ -33,6 +33,7 @@
         <div class="tactical-stat"><span class="stat-label">Threats in sector</span><strong id="threat-value">0</strong></div>
         <div class="tactical-stat"><span class="stat-label">Mission score</span><strong id="score-value">0</strong></div>
         <div class="tactical-stat"><span class="stat-label">Field credits</span><strong id="resource-value">320</strong></div>
+        <div class="tactical-stat"><span class="stat-label">Priority contact</span><strong id="boss-value">None</strong></div>
         <div class="tactical-stat"><span class="stat-label">Endless record</span><strong id="record-value">Wave 0</strong></div>
       </div>
 
@@ -92,7 +93,7 @@
                 <span class="brief-label">MISSION BRIEF</span>
                 <p>Protect the base through two incoming waves. Infantry that reaches the perimeter will reduce base integrity.</p>
               </div>
-              <p class="stage-note">Build your perimeter with limited field credits. Towers target infantry automatically; protect the forward base.</p>
+              <p class="stage-note">Build your perimeter with limited field credits. Towers auto-engage compatible contacts; protect the forward base.</p>
               <button class="text-button tutorial-button" id="tutorial-button" type="button">How to play</button>
               <button class="primary-button" id="start-button" type="button">Begin campaign <span aria-hidden="true">↗</span></button>
               <button class="text-button" id="menu-settings-button" type="button">Simulation settings</button>
@@ -162,10 +163,12 @@
         <li><strong>Protect the base.</strong><span>Infantry that reaches the forward operating base removes one integrity. Hold through both Campaign waves, or survive as long as possible in Endless.</span></li>
         <li><strong>Earn and spend field credits.</strong><span>Start with 320 credits. Destroyed enemies and completed waves award more; select a tower only when you can afford it.</span></li>
         <li><strong>Place on clear terrain.</strong><span>Choose an emplacement, then click or tap a clear spot away from roads, scenery, other towers, and the map edge. Invalid positions never charge you.</span></li>
-        <li><strong>Let the defenses engage.</strong><span>Every tower automatically targets the furthest-along enemy in range. Inspect a placed tower for its stats; select another emplacement to continue building.</span></li>
-        <li><strong>Command the camera.</strong><span>Drag or use WASD / arrow keys to pan; use the wheel or zoom controls to zoom. Pause freezes enemies, towers, and projectiles.</span></li>
+        <li><strong>Know the enemy; match your defenses.</strong><span>Machine Guns suppress infantry and scouts; Cannons punish armor; Rockets and Artillery strike groups; Snipers pick priority targets. Anti-Air targets helicopters and drones only.</span></li>
+        <li><strong>Watch for special threats.</strong><span>Rocket Vehicles fire at nearby defenses. Command Tanks mark a ground burst before it hits. Boss health and priority alerts appear above the battlefield and in the status display.</span></li>
+        <li><strong>Let the defenses engage.</strong><span>Towers automatically target the furthest-along compatible enemy in range. Inspect a placed tower for its stats; select another emplacement to continue building.</span></li>
+        <li><strong>Command the camera.</strong><span>Drag or use WASD / arrow keys to pan; use the wheel or zoom controls to zoom. Pause freezes enemies, special attacks, and projectiles.</span></li>
       </ol>
-      <p class="tutorial-note">Anti-Air emplacements are placeable now and can engage ground infantry. Flying enemies are not included in this build.</p>
+      <p class="tutorial-note">Scout Jeeps are quick; APCs and Heavy Tanks resist small arms; Elite Squads endure more hits. Helicopters and Drones fly the same route and can only be engaged by Anti-Air.</p>
       <button class="primary-button settings-done" id="tutorial-done-button" type="button">Return to field</button>
     </div>
   </dialog>

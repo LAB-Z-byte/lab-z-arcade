@@ -21,12 +21,23 @@
     { x: 1770, y: 820 }
   ];
   const TOWERS = {
-    machineGun: { name: "Machine Gun", cost: 90, range: 178, damage: 13, reload: .34, projectileSpeed: 880, splash: 0, color: "#e1c581", role: "Rapid fire · infantry suppression" },
-    heavyCannon: { name: "Heavy Cannon", cost: 155, range: 220, damage: 68, reload: 2.15, projectileSpeed: 420, splash: 48, color: "#e7a36f", role: "Heavy direct hit · blast damage" },
-    rocketLauncher: { name: "Rocket Launcher", cost: 175, range: 248, damage: 40, reload: 1.35, projectileSpeed: 310, splash: 64, color: "#e48558", role: "Rocket salvo · wide splash" },
-    sniperTower: { name: "Sniper Tower", cost: 140, range: 332, damage: 105, reload: 2.25, projectileSpeed: 1150, splash: 0, color: "#d7dfbd", role: "Long range · precision strike" },
-    antiAircraft: { name: "Anti-Aircraft", cost: 125, range: 260, damage: 19, reload: .72, projectileSpeed: 760, splash: 0, color: "#91c5a1", role: "Rapid air-defense mount · ground capable" },
-    artillery: { name: "Artillery", cost: 250, range: 445, damage: 94, reload: 4.1, projectileSpeed: 250, splash: 94, color: "#f0ca78", role: "Very long range · heavy area strike" }
+    machineGun: { name: "Machine Gun", cost: 90, range: 178, damage: 15, reload: .34, projectileSpeed: 880, splash: 0, color: "#e1c581", role: "Rapid fire · infantry and scouts", targetsAir: false },
+    heavyCannon: { name: "Heavy Cannon", cost: 155, range: 220, damage: 90, reload: 2.15, projectileSpeed: 420, splash: 48, color: "#e7a36f", role: "Armor-piercing · heavy ground units", targetsAir: false },
+    rocketLauncher: { name: "Rocket Launcher", cost: 175, range: 248, damage: 56, reload: 1.35, projectileSpeed: 310, splash: 64, color: "#e48558", role: "Guided ground rockets · area blast", targetsAir: false },
+    sniperTower: { name: "Sniper Tower", cost: 140, range: 332, damage: 130, reload: 2.25, projectileSpeed: 1150, splash: 0, color: "#d7dfbd", role: "Long range · elite and command targets", targetsAir: false },
+    antiAircraft: { name: "Anti-Aircraft", cost: 125, range: 290, damage: 40, reload: .72, projectileSpeed: 760, splash: 0, color: "#91c5a1", role: "Aircraft defense · helicopters and drones", targetsAir: true },
+    artillery: { name: "Artillery", cost: 250, range: 445, damage: 104, reload: 4.1, projectileSpeed: 250, splash: 94, color: "#f0ca78", role: "Very long range · heavy ground blast", targetsAir: false }
+  };
+  const ENEMIES = {
+    infantry: { name: "Infantry", health: 100, speed: 72, armor: 0, reward: 28, baseDamage: 1, airborne: false, radius: 17 },
+    scoutJeep: { name: "Scout Jeep", health: 108, speed: 133, armor: .08, reward: 36, baseDamage: 2, airborne: false, radius: 20 },
+    apc: { name: "APC", health: 350, speed: 56, armor: .24, reward: 58, baseDamage: 2, airborne: false, radius: 23 },
+    heavyTank: { name: "Heavy Tank", health: 580, speed: 39, armor: .4, reward: 84, baseDamage: 3, airborne: false, radius: 25 },
+    rocketVehicle: { name: "Rocket Vehicle", health: 230, speed: 68, armor: .16, reward: 72, baseDamage: 2, airborne: false, radius: 24 },
+    helicopter: { name: "Helicopter", health: 185, speed: 86, armor: .12, reward: 62, baseDamage: 2, airborne: true, radius: 22 },
+    combatDrone: { name: "Combat Drone", health: 88, speed: 151, armor: .04, reward: 48, baseDamage: 1, airborne: true, radius: 15 },
+    eliteSquad: { name: "Elite Squad", health: 205, speed: 78, armor: .16, reward: 54, baseDamage: 1, airborne: false, radius: 19 },
+    boss: { name: "Command Tank", health: 2080, speed: 30, armor: .28, reward: 420, baseDamage: 4, airborne: false, radius: 43 }
   };
 
   const canvas = document.querySelector("#battlefield");
@@ -45,6 +56,7 @@
   const threatValue = document.querySelector("#threat-value");
   const scoreValue = document.querySelector("#score-value");
   const resourceValue = document.querySelector("#resource-value");
+  const bossValue = document.querySelector("#boss-value");
   const recordValue = document.querySelector("#record-value");
   const missionStatus = document.querySelector("#mission-status");
   const pauseButton = document.querySelector("#pause-button");
@@ -63,7 +75,7 @@
   const requiredElements = [
     canvas, context, startButton, phaseOverlay, overlayTitle, overlayCopy, startView,
     pauseView, resultView, gameStatus, baseValue, integrityBar, waveValue,
-    threatValue, scoreValue, resourceValue, recordValue, missionStatus, pauseButton, restartButton,
+    threatValue, scoreValue, resourceValue, bossValue, recordValue, missionStatus, pauseButton, restartButton,
     settingsDialog, settingsButton, defaultSpeed, terrainDetail, settingsSaved,
     gridReadout, zoomValue, buildGuidance, towerInspector, tutorialDialog
   ];
@@ -91,6 +103,7 @@
   const modeButtons = [...document.querySelectorAll(".mode-card[data-mode]")];
   const speedButtons = [...document.querySelectorAll(".speed-button[data-speed]")];
   const enemies = [];
+  const enemySpawnQueue = [];
   const dustParticles = [];
   const towers = [];
   const projectiles = [];
@@ -131,6 +144,8 @@
   let bestEndlessWave = readRecord();
   let infantryDustTimer = 0;
   const infantryFrames = createInfantryFrames();
+  const eliteFrames = createInfantryFrames(true);
+  const enemySprites = createEnemySprites();
 
   function readSettings() {
     const defaults = { speed: 1, terrainDetail: true };
@@ -600,7 +615,7 @@
     }
   }
 
-  function createInfantryFrames() {
+  function createInfantryFrames(elite = false) {
     const frames = [];
     for (let frame = 0; frame < 4; frame += 1) {
       const sprite = document.createElement("canvas");
@@ -713,9 +728,252 @@
       ctx.fillStyle = "rgba(195, 188, 144, .45)";
       ctx.fillRect(13, 36, 3, 5);
       ctx.fillRect(31, 36, 3, 5);
+      if (elite) {
+        ctx.fillStyle = "#b17b51";
+        ctx.fillRect(16, 23, 3, 8);
+        ctx.fillRect(29, 23, 3, 8);
+        ctx.fillStyle = "#9ca17c";
+        ctx.fillRect(20, 32, 8, 3);
+      }
       frames.push(sprite);
     }
     return frames;
+  }
+
+  function createEnemySprites() {
+    const sprites = Object.create(null);
+    const vehicleTypes = Object.keys(ENEMIES).filter((type) => type !== "infantry" && type !== "eliteSquad");
+    for (const type of vehicleTypes) {
+      const boss = type === "boss";
+      const size = boss ? 104 : 72;
+      const sprite = document.createElement("canvas");
+      sprite.width = size;
+      sprite.height = size;
+      const ctx = sprite.getContext("2d");
+      if (!ctx) {
+        console.error("LAB-Z Frontline Defense could not cache the enemy vehicle artwork.");
+        return sprites;
+      }
+      const scale = boss ? 1.28 : 1;
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      ctx.scale(scale, scale);
+      ctx.fillStyle = "rgba(14, 19, 16, .42)";
+      ctx.beginPath();
+      ctx.ellipse(4, 7, type === "helicopter" ? 22 : 25, type === "helicopter" ? 17 : 28, -.08, 0, Math.PI * 2);
+      ctx.fill();
+
+      const hull = type === "scoutJeep" || type === "combatDrone" ? "#62664c" : "#505b46";
+      const highlight = type === "boss" ? "#b89464" : "#969477";
+      ctx.strokeStyle = "#292f29";
+      ctx.lineWidth = 2;
+
+      if (type === "helicopter") {
+        ctx.fillStyle = "#414c40";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 10, 22, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#8b8968";
+        ctx.beginPath();
+        ctx.ellipse(-1, -8, 7, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#353e36";
+        ctx.fillRect(-2, 15, 4, 17);
+        ctx.fillRect(-10, 29, 20, 3);
+        ctx.fillStyle = "#b4b08a";
+        ctx.fillRect(-2, -19, 4, 39);
+        ctx.fillRect(-18, -1, 36, 3);
+        ctx.fillStyle = "#252d29";
+        ctx.fillRect(-15, -3, 30, 2);
+        ctx.fillRect(-3, -18, 2, 35);
+        ctx.fillStyle = "#a4936e";
+        ctx.fillRect(8, 4, 4, 8);
+      } else if (type === "combatDrone") {
+        ctx.fillStyle = "#414b40";
+        ctx.beginPath();
+        ctx.moveTo(-9, -10);
+        ctx.lineTo(-2, -15);
+        ctx.lineTo(9, -10);
+        ctx.lineTo(13, -2);
+        ctx.lineTo(7, 9);
+        ctx.lineTo(-8, 9);
+        ctx.lineTo(-13, 1);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "#b0aa7d";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-7, -7);
+        ctx.lineTo(-22, -19);
+        ctx.moveTo(7, -7);
+        ctx.lineTo(22, -19);
+        ctx.moveTo(-7, 7);
+        ctx.lineTo(-22, 19);
+        ctx.moveTo(7, 7);
+        ctx.lineTo(22, 19);
+        ctx.stroke();
+        ctx.fillStyle = "#252d28";
+        [[-22, -19], [22, -19], [-22, 19], [22, 19]].forEach(([x, y]) => {
+          ctx.beginPath();
+          ctx.ellipse(x, y, 7, 2, .15, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.fillStyle = "#c17b57";
+        ctx.fillRect(-3, -2, 6, 5);
+      } else if (type === "scoutJeep" || type === "rocketVehicle") {
+        ctx.fillStyle = "#303731";
+        ctx.fillRect(-20, -19, 7, 37);
+        ctx.fillRect(13, -19, 7, 37);
+        for (let wheel = -1; wheel <= 1; wheel += 1) {
+          const wheelY = wheel * 13 - 3;
+          ctx.fillStyle = "#202721";
+          ctx.beginPath();
+          ctx.roundRect(-23, wheelY - 4, 10, 8, 3);
+          ctx.roundRect(13, wheelY - 4, 10, 8, 3);
+          ctx.fill();
+          ctx.fillStyle = "#8b8666";
+          ctx.fillRect(-20, wheelY - 1, 5, 2);
+          ctx.fillRect(15, wheelY - 1, 5, 2);
+        }
+        ctx.fillStyle = hull;
+        ctx.beginPath();
+        ctx.moveTo(-13, -22);
+        ctx.lineTo(13, -22);
+        ctx.lineTo(17, -14);
+        ctx.lineTo(15, 17);
+        ctx.lineTo(9, 23);
+        ctx.lineTo(-12, 21);
+        ctx.lineTo(-17, 15);
+        ctx.lineTo(-17, -14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        if (type === "scoutJeep") {
+          ctx.fillStyle = "#85856a";
+          ctx.fillRect(-10, -16, 20, 8);
+          ctx.fillStyle = "#333d34";
+          ctx.fillRect(-8, -14, 7, 5);
+          ctx.fillRect(2, -14, 6, 5);
+          ctx.fillStyle = "#b0aa7d";
+          ctx.fillRect(-12, 1, 24, 2);
+          ctx.fillStyle = "#d5b16b";
+          ctx.fillRect(-12, -22, 4, 3);
+          ctx.fillRect(8, -22, 4, 3);
+          ctx.fillStyle = "#454c3c";
+          ctx.fillRect(-2, -4, 4, 14);
+          ctx.fillRect(-1, -13, 2, 9);
+        } else {
+          ctx.fillStyle = "#424b3d";
+          ctx.fillRect(-11, 0, 22, 16);
+          ctx.strokeRect(-11, 0, 22, 16);
+          for (let rocket = -1; rocket <= 1; rocket += 1) {
+            ctx.fillStyle = "#b7a577";
+            ctx.fillRect(-8, rocket * 7 + 4, 16, 3);
+            ctx.fillStyle = "#31382e";
+            ctx.fillRect(6, rocket * 7 + 4, 4, 3);
+          }
+          ctx.fillStyle = "#c17b57";
+          ctx.fillRect(-9, 18, 5, 3);
+          ctx.fillRect(4, 18, 5, 3);
+        }
+      } else {
+        ctx.fillStyle = "#343a33";
+        ctx.fillRect(-22, -23, 8, 46);
+        ctx.fillRect(14, -23, 8, 46);
+        for (let wheel = -2; wheel <= 2; wheel += 1) {
+          const wheelY = wheel * 9 - 3;
+          ctx.fillStyle = "#252b27";
+          ctx.beginPath();
+          ctx.arc(-18, wheelY, 3.2, 0, Math.PI * 2);
+          ctx.arc(18, wheelY, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#938c6c";
+          ctx.beginPath();
+          ctx.arc(-18, wheelY, 1.2, 0, Math.PI * 2);
+          ctx.arc(18, wheelY, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = hull;
+        ctx.beginPath();
+        ctx.moveTo(-14, -24);
+        ctx.lineTo(11, -23);
+        ctx.lineTo(15, -13);
+        ctx.lineTo(14, 19);
+        ctx.lineTo(7, 25);
+        ctx.lineTo(-10, 23);
+        ctx.lineTo(-15, 14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "rgba(202, 195, 151, .35)";
+        ctx.fillRect(-9, -17, 18, 3);
+        ctx.fillRect(-11, 14, 22, 2);
+        if (type === "apc") {
+          ctx.fillStyle = "#74765b";
+          ctx.fillRect(-9, -12, 18, 23);
+          ctx.strokeRect(-9, -12, 18, 23);
+          ctx.fillStyle = "#9d9873";
+          ctx.fillRect(-6, -8, 12, 3);
+          ctx.fillRect(-6, -2, 12, 3);
+          ctx.fillRect(-6, 4, 12, 3);
+          ctx.fillStyle = "#353d34";
+          ctx.beginPath();
+          ctx.arc(0, -14, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#bab38a";
+          ctx.fillRect(-2, -24, 4, 12);
+          ctx.fillRect(-1, -25, 2, 4);
+        } else if (type === "heavyTank" || boss) {
+          ctx.fillStyle = boss ? "#857554" : "#6b7056";
+          ctx.beginPath();
+          ctx.roundRect(-11, -19, 22, 32, 5);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = highlight;
+          ctx.beginPath();
+          ctx.ellipse(0, -5, boss ? 12 : 9, boss ? 14 : 11, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#b8aa7d";
+          ctx.fillRect(-3, -32, 6, 23);
+          ctx.fillStyle = "#303830";
+          ctx.fillRect(-4, -33, 8, 4);
+          ctx.fillStyle = boss ? "#d2a05f" : "#97916b";
+          ctx.fillRect(-12, -16, 4, 5);
+          ctx.fillRect(8, -16, 4, 5);
+          ctx.fillStyle = boss ? "#b9654d" : "#a8a27a";
+          ctx.fillRect(-5, 2, 10, 3);
+          if (boss) {
+            ctx.strokeStyle = "#d6a461";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-21, -22, 42, 44);
+            ctx.fillStyle = "#c16b51";
+            ctx.fillRect(-4, 13, 8, 3);
+          }
+        } else {
+          ctx.fillStyle = "#77785c";
+          ctx.fillRect(-10, -12, 20, 26);
+          ctx.strokeRect(-10, -12, 20, 26);
+          ctx.fillStyle = "#343c33";
+          ctx.fillRect(-7, -9, 14, 4);
+          ctx.fillRect(-7, -2, 14, 4);
+          ctx.fillRect(-7, 5, 14, 4);
+          ctx.fillStyle = "#b4a577";
+          ctx.fillRect(-4, -21, 8, 11);
+          ctx.fillRect(-2, -26, 4, 8);
+        }
+      }
+
+      ctx.fillStyle = highlight;
+      ctx.globalAlpha = .65;
+      ctx.fillRect(-9, size * .29, 5, 2);
+      ctx.fillRect(5, size * .29, 5, 2);
+      ctx.restore();
+      sprites[type] = sprite;
+    }
+    return sprites;
   }
 
   function drawTerrain(detailEnabled) {
@@ -860,7 +1118,7 @@
     if (selectedTower) {
       const stats = TOWERS[selectedTower.type];
       towerInspector.hidden = false;
-      const airNote = selectedTower.type === "antiAircraft" ? "<span>Flying enemies are not in this build</span>" : "";
+      const airNote = selectedTower.type === "antiAircraft" ? "<span>Air defense: helicopters and drones only</span>" : "";
       towerInspector.innerHTML = `<strong>${stats.name} · FIELD UNIT ${String(selectedTower.id).padStart(2, "0")}</strong><span>${stats.role}</span><span>Damage ${stats.damage}</span><span>Range ${stats.range}</span><span>${(1 / stats.reload).toFixed(2)} shots/sec</span><span>Standard issue · no upgrades</span>${airNote}`;
       buildGuidance.textContent = `${stats.name} selected. Its range is outlined; choose another emplacement to build or tap clear ground to deselect.`;
     } else {
@@ -878,7 +1136,7 @@
           : `${stats.name} costs ${stats.cost} credits; you have ${resources}. Defeat infantry or complete a wave to earn more.`);
     } else if (!selectedTower) {
       buildGuidance.textContent = gameState === "running"
-        ? "Select an emplacement, then click or tap clear terrain. Towers target the furthest-along infantry automatically."
+        ? "Select an emplacement, then click or tap clear terrain. Towers target the furthest-along compatible contact."
         : gameState === "ready"
           ? "Deployments are available during an operation. Select an emplacement, then click or tap clear terrain."
           : gameState === "paused"
@@ -897,6 +1155,13 @@
     threatValue.textContent = String(enemies.length + enemiesToSpawn);
     scoreValue.textContent = String(score);
     resourceValue.textContent = String(resources);
+    const activeBoss = enemies.find((enemy) => enemy.type === "boss" && enemy.health > 0);
+    bossValue.textContent = activeBoss
+      ? `${Math.ceil(activeBoss.health / activeBoss.maxHealth * 100)}%`
+      : enemiesToSpawn && enemySpawnQueue.includes("boss")
+        ? "Inbound"
+        : "None";
+    bossValue.classList.toggle("boss-contact", Boolean(activeBoss) || bossValue.textContent === "Inbound");
     recordValue.textContent = `Wave ${bestEndlessWave}`;
     pauseButton.disabled = gameState !== "running" && gameState !== "paused";
     pauseButton.innerHTML = gameState === "paused" ? '<span aria-hidden="true">▶</span> Resume' : '<span aria-hidden="true">Ⅱ</span> Pause';
@@ -945,12 +1210,35 @@
     });
   }
 
+  function getWaveComposition(nextWave) {
+    if (selectedMode === "campaign") {
+      if (nextWave === 1) return ["infantry", "infantry", "infantry", "infantry", "infantry", "infantry"];
+      return ["infantry", "scoutJeep", "infantry", "eliteSquad", "scoutJeep", "apc", "heavyTank", "rocketVehicle", "helicopter", "combatDrone", "boss"];
+    }
+
+    if (nextWave === 1) return ["infantry", "infantry", "infantry", "infantry", "infantry", "infantry"];
+    if (nextWave === 2) return ["infantry", "infantry", "scoutJeep", "infantry", "combatDrone", "scoutJeep", "combatDrone", "eliteSquad"];
+    if (nextWave === 3) return ["scoutJeep", "infantry", "apc", "infantry", "helicopter", "rocketVehicle", "combatDrone", "eliteSquad", "apc"];
+
+    const composition = ["infantry", "scoutJeep", "apc", "rocketVehicle", "eliteSquad"];
+    for (let index = 0; index < Math.min(2 + Math.floor(nextWave / 3), 9); index += 1) {
+      composition.push(index % 3 === 0 ? "heavyTank" : "apc");
+      if (index % 2 === 0) composition.push("helicopter");
+      composition.push("combatDrone", "infantry");
+    }
+    if (nextWave % 5 === 0) composition.push("boss");
+    return composition;
+  }
+
   function startWave(nextWave) {
     wave = nextWave;
-    enemiesToSpawn = 6 + Math.min(wave - 1, 24) * 2;
+    enemySpawnQueue.length = 0;
+    enemySpawnQueue.push(...getWaveComposition(wave));
+    enemiesToSpawn = enemySpawnQueue.length;
     spawnTimer = 0.35;
     intermissionTimer = 0;
-    announce(`${selectedMode === "campaign" ? "Campaign" : "Endless"} wave ${wave} in progress. ${enemiesToSpawn} infantry units approaching.`);
+    const bossInWave = enemySpawnQueue.includes("boss");
+    announce(`${selectedMode === "campaign" ? "Campaign" : "Endless"} wave ${wave} in progress. ${enemiesToSpawn} contacts approaching.${bossInWave ? " Command Tank signature detected." : ""}`);
     updateHud();
   }
 
@@ -958,6 +1246,7 @@
     enemies.length = 0;
     towers.length = 0;
     projectiles.length = 0;
+    enemySpawnQueue.length = 0;
     combatEffects.length = 0;
     dustParticles.length = 0;
     selectedTowerType = null;
@@ -1020,6 +1309,7 @@
     combatEffects.length = 0;
     dustParticles.length = 0;
     enemiesToSpawn = 0;
+    enemySpawnQueue.length = 0;
     baseHealth = BASE_HEALTH;
     resources = STARTING_RESOURCES;
     selectedTowerType = null;
@@ -1037,7 +1327,7 @@
     startButton.focus({ preventScroll: true });
   }
 
-  function finishOperation(success) {
+  function finishOperation(success, priorityContactLost = false) {
     gameState = success ? "won" : "lost";
     towerControlsDirty = true;
     if (selectedMode === "endless") saveRecord(wavesCompleted);
@@ -1046,13 +1336,22 @@
     overlayTitle.innerHTML = success ? 'Sector <span>secured.</span>' : 'Line <span>overrun.</span>';
     overlayCopy.textContent = success
       ? "The Green Valley perimeter held through the full campaign exercise."
-      : "Hostile infantry breached the perimeter. The operation has ended.";
+      : priorityContactLost
+        ? "The Command Tank caused the terminal breach. The operation has ended."
+        : "Hostile forces breached the perimeter. The operation has ended.";
     document.querySelector("#result-copy").textContent = selectedMode === "campaign"
-      ? `${headline} Your emplacements held through the full campaign exercise.`
+      ? success
+        ? `${headline} Your emplacements held through the full campaign exercise.`
+        : `${headline} ${priorityContactLost ? "The Command Tank" : "Enemy forces"} overwhelmed the forward base.`
       : `${headline} Your best endless result is wave ${bestEndlessWave}.`;
     document.querySelector("#result-waves").textContent = String(wavesCompleted);
     document.querySelector("#result-integrity").textContent = `${baseHealth} / ${BASE_HEALTH}`;
     document.querySelector("#result-score").textContent = String(score);
+    document.querySelector("#result-stamp").textContent = priorityContactLost
+      ? "PRIORITY CONTACT LOST"
+      : success
+        ? "AFTER ACTION REPORT · SECTOR HELD"
+        : "AFTER ACTION REPORT · SECTOR LOST";
     showOverlay("result");
     announce(`${headline} ${wavesCompleted} waves completed. Base integrity ${baseHealth} of ${BASE_HEALTH}.`);
     updateHud();
@@ -1060,20 +1359,45 @@
   }
 
   function spawnEnemy() {
-    const health = 100 + Math.max(0, wave - 1) * 14;
-    enemies.push({
+    const type = enemySpawnQueue.shift() || "infantry";
+    const stats = ENEMIES[type];
+    const healthScale = 1 + Math.min(wave - 1, 20) * .085;
+    const enemy = {
       id: nextEnemyId,
+      type,
+      name: stats.name,
       x: ROUTE[0].x,
       y: ROUTE[0].y,
       routeIndex: 1,
       progress: 0,
-      health,
-      maxHealth: health,
-      speed: 72 + Math.min(wave - 1, 15) * 1.8,
+      health: Math.round(stats.health * healthScale),
+      maxHealth: Math.round(stats.health * healthScale),
+      speed: stats.speed + Math.min(wave - 1, 12) * 1.3,
+      armor: stats.armor,
+      reward: stats.reward,
+      baseDamage: stats.baseDamage,
+      airborne: stats.airborne,
+      radius: stats.radius,
       phase: Math.random() * Math.PI * 2,
-      dustTimer: Math.random() * .16
-    });
+      dustTimer: Math.random() * .16,
+      hitFlash: 0,
+      attackCooldown: type === "rocketVehicle" ? 1.8 : type === "boss" ? 6.5 : 0,
+      attackWindup: 0,
+      attackTarget: null,
+      attackTargetType: "",
+      attackX: 0,
+      attackY: 0,
+      boostCooldown: type === "scoutJeep" ? 2.8 : 0,
+      boostTime: 0,
+      regenDelay: 0,
+      rewarded: false
+    };
+    enemies.push(enemy);
     nextEnemyId += 1;
+    if (type === "boss") {
+      announce(`Priority contact: Command Tank entering the route in wave ${wave}. Watch for its marked ground strike.`);
+    }
+    return enemy;
   }
 
   function emitDust(enemy) {
@@ -1131,10 +1455,195 @@
   function defeatEnemy(enemy, x, y) {
     if (enemy.rewarded) return;
     enemy.rewarded = true;
-    resources += 28;
+    resources += enemy.reward;
     towerControlsDirty = true;
-    score += 45;
-    addCombatEffect(x, y, 22, "#d5c396", .48);
+    score += 30 + enemy.reward;
+    addCombatEffect(x, y, enemy.type === "boss" ? 65 : 22, enemy.type === "boss" ? "#e5aa66" : "#d5c396", .48);
+    if (enemy.type === "boss") announce(`Command Tank destroyed. ${enemy.reward} credits recovered.`);
+    if (enemy.type === "rocketVehicle") announce(`Rocket Vehicle destroyed before it could launch. ${enemy.reward} credits recovered.`);
+  }
+
+  function damageTower(tower, amount) {
+    if (tower.destroyed) return;
+    tower.health = Math.max(0, tower.health - amount);
+    tower.hitFlash = .18;
+    if (tower.health > 0) return;
+    tower.destroyed = true;
+    addCombatEffect(tower.x, tower.y, 52, "#dc805f", .58);
+    if (selectedTower === tower) {
+      selectedTower = null;
+      towerControlsDirty = true;
+    }
+    announce(`${TOWERS[tower.type].name} emplacement destroyed by incoming fire.`);
+  }
+
+  function damageTowersInRadius(x, y, radius, damage) {
+    for (const tower of towers) {
+      if (!tower.destroyed && Math.hypot(tower.x - x, tower.y - y) <= radius) damageTower(tower, damage);
+    }
+  }
+
+  function fireEnemyRocket(enemy, target, targetType) {
+    projectiles.push({
+      x: enemy.x,
+      y: enemy.y,
+      target,
+      targetType,
+      speed: 335,
+      damage: targetType === "base" ? 2 : 46,
+      splash: 0,
+      color: "#e38360",
+      type: "enemyRocket",
+      faction: "hostile",
+      angle: Math.atan2(target.y - enemy.y, target.x - enemy.x)
+    });
+    addCombatEffect(enemy.x, enemy.y, 26, "#e38360", .32);
+    announce(targetType === "base"
+      ? "Rocket Vehicle launched a base strike!"
+      : "Rocket Vehicle locked onto a defensive emplacement!");
+  }
+
+  function chooseRocketVehicleTarget(enemy) {
+    let target = null;
+    let nearest = 310;
+    for (const tower of towers) {
+      if (tower.destroyed) continue;
+      const distance = Math.hypot(tower.x - enemy.x, tower.y - enemy.y);
+      if (distance < nearest) {
+        target = tower;
+        nearest = distance;
+      }
+    }
+    if (target) return { target, type: "tower" };
+    const base = ROUTE[ROUTE.length - 1];
+    if (Math.hypot(base.x - enemy.x, base.y - enemy.y) <= 460) {
+      return { target: base, type: "base" };
+    }
+    return null;
+  }
+
+  function chooseBossTarget(enemy) {
+    let target = null;
+    let nearest = 400;
+    for (const tower of towers) {
+      if (tower.destroyed) continue;
+      const distance = Math.hypot(tower.x - enemy.x, tower.y - enemy.y);
+      if (distance < nearest) {
+        target = tower;
+        nearest = distance;
+      }
+    }
+    if (target) return target;
+    const base = ROUTE[ROUTE.length - 1];
+    return Math.hypot(base.x - enemy.x, base.y - enemy.y) <= 510 ? base : null;
+  }
+
+  function updateEnemyAbilities(enemy, delta) {
+    enemy.hitFlash = Math.max(0, enemy.hitFlash - delta);
+    if (enemy.type === "eliteSquad") {
+      enemy.regenDelay = Math.max(0, enemy.regenDelay - delta);
+      if (enemy.regenDelay === 0 && enemy.health > 0) enemy.health = Math.min(enemy.maxHealth, enemy.health + 7 * delta);
+    }
+    if (enemy.type === "scoutJeep") {
+      enemy.boostCooldown -= delta;
+      enemy.boostTime = Math.max(0, enemy.boostTime - delta);
+      if (enemy.boostCooldown <= 0) {
+        enemy.boostTime = .9;
+        enemy.boostCooldown = 6.5;
+        addCombatEffect(enemy.x, enemy.y, 32, "#e3bf74", .4);
+        announce("Scout Jeep accelerating along the route.");
+      }
+    }
+    if (enemy.type === "rocketVehicle") {
+      enemy.attackCooldown -= delta;
+      if (enemy.attackWindup > 0) {
+        enemy.attackWindup = Math.max(0, enemy.attackWindup - delta);
+        if (enemy.attackWindup === 0) {
+          const locked = enemy.attackTarget;
+          if (locked && (enemy.attackTargetType === "base" || towers.includes(locked) && !locked.destroyed)) {
+            fireEnemyRocket(enemy, locked, enemy.attackTargetType);
+          }
+          enemy.attackTarget = null;
+        }
+      } else if (enemy.attackCooldown <= 0) {
+        const selected = chooseRocketVehicleTarget(enemy);
+        if (selected) {
+          enemy.attackTarget = selected.target;
+          enemy.attackTargetType = selected.type;
+          enemy.attackWindup = .85;
+          enemy.attackCooldown = 4.7;
+        } else {
+          enemy.attackCooldown = 1.2;
+        }
+      }
+    }
+    if (enemy.type === "boss") {
+      if (enemy.attackWindup > 0) {
+        enemy.attackWindup = Math.max(0, enemy.attackWindup - delta);
+        if (enemy.attackWindup === 0) {
+          damageTowersInRadius(enemy.attackX, enemy.attackY, 170, 72);
+          const base = ROUTE[ROUTE.length - 1];
+          if (Math.hypot(base.x - enemy.attackX, base.y - enemy.attackY) <= 170) {
+            baseHealth = Math.max(0, baseHealth - 3);
+            announce(`Command Tank ground strike hit! Base integrity ${baseHealth} of ${BASE_HEALTH}.`);
+          } else {
+            announce("Command Tank ground strike hit defensive emplacements!");
+          }
+          addCombatEffect(enemy.attackX, enemy.attackY, 170, "#e08261", .7);
+          if (baseHealth <= 0) finishOperation(false, true);
+        }
+      } else {
+        enemy.attackCooldown -= delta;
+        if (enemy.attackCooldown <= 0) {
+          const target = chooseBossTarget(enemy);
+          if (target) {
+            enemy.attackX = target.x;
+            enemy.attackY = target.y;
+            enemy.attackWindup = 1.2;
+            enemy.attackCooldown = 8.5;
+            addCombatEffect(enemy.attackX, enemy.attackY, 170, "rgba(224, 130, 97, .68)", 1.2);
+            announce("Command Tank marking a ground-strike zone! Move defenses out of the warning ring.");
+          } else {
+            enemy.attackCooldown = 1.5;
+          }
+        }
+      }
+    }
+  }
+
+  function applyEnemyDamage(enemy, damage, towerType) {
+    if (enemy.health <= 0) return;
+    const stats = TOWERS[towerType];
+    if (!stats || enemy.airborne !== stats.targetsAir) return;
+    let multiplier = 1 - enemy.armor;
+    if (towerType === "machineGun") {
+      if (enemy.type === "infantry" || enemy.type === "eliteSquad") multiplier *= enemy.type === "infantry" ? 1.25 : 1.12;
+      if (enemy.type === "scoutJeep" || enemy.type === "combatDrone") multiplier *= 1.2;
+      if (enemy.type === "apc" || enemy.type === "heavyTank" || enemy.type === "boss") multiplier *= .72;
+    } else if (towerType === "heavyCannon") {
+      multiplier /= Math.max(.45, 1 - enemy.armor * .8);
+      if (enemy.type === "apc" || enemy.type === "heavyTank" || enemy.type === "boss") multiplier *= 1.48;
+      if (enemy.type === "scoutJeep" || enemy.type === "combatDrone") multiplier *= .78;
+    } else if (towerType === "sniperTower") {
+      multiplier /= Math.max(.5, 1 - enemy.armor * .6);
+      if (enemy.type === "boss") multiplier *= 1.65;
+      else if (enemy.type === "eliteSquad" || enemy.type === "rocketVehicle") multiplier *= 1.3;
+    } else if (towerType === "antiAircraft") {
+      multiplier *= enemy.type === "helicopter" ? 1.35 : 1;
+    } else if (towerType === "rocketLauncher" && !enemy.airborne) {
+      multiplier *= enemy.armor > .2 ? 1.12 : 1;
+    }
+    enemy.health -= Math.max(1, Math.round(damage * multiplier));
+    enemy.hitFlash = .14;
+    enemy.regenDelay = 2.4;
+    if (enemy.health <= 0) defeatEnemy(enemy, enemy.x, enemy.y);
+    else if (enemy.type === "boss" && enemy.health / enemy.maxHealth < .5 && !enemy.enraged) {
+      enemy.enraged = true;
+      enemy.armor = Math.max(.12, enemy.armor - .08);
+      enemy.speed += 5;
+      addCombatEffect(enemy.x, enemy.y, 110, "#e29c68", .72);
+      announce("Command Tank damaged. It is accelerating and its armor is failing.");
+    }
   }
 
   function impactProjectile(projectile, x, y) {
@@ -1144,25 +1653,43 @@
         const distance = Math.hypot(enemy.x - x, enemy.y - y);
         if (enemy === projectile.target || distance <= projectile.splash) {
           const falloff = enemy === projectile.target ? 1 : Math.max(.25, 1 - distance / projectile.splash * .62);
-          enemy.health -= Math.max(1, Math.round(projectile.damage * falloff));
-          if (enemy.health <= 0) defeatEnemy(enemy, enemy.x, enemy.y);
+          applyEnemyDamage(enemy, projectile.damage * falloff, projectile.type);
         }
       }
       addCombatEffect(x, y, projectile.splash, projectile.color, .55);
       return;
     }
-    if (projectile.target.health > 0) {
-      projectile.target.health -= projectile.damage;
-      if (projectile.target.health <= 0) defeatEnemy(projectile.target, x, y);
+    if (projectile.faction === "hostile") {
+      if (projectile.targetType === "tower" && towers.includes(projectile.target)) {
+        damageTower(projectile.target, projectile.damage);
+        addCombatEffect(x, y, 30, "#df845f", .34);
+      } else if (projectile.targetType === "base") {
+        baseHealth = Math.max(0, baseHealth - projectile.damage);
+        addCombatEffect(x, y, 52, "#e28762", .48);
+        announce(`Rocket strike hit the forward base. Integrity ${baseHealth} of ${BASE_HEALTH}.`);
+        if (baseHealth <= 0) finishOperation(false);
+      }
+      return;
     }
-    addCombatEffect(x, y, 12, projectile.color, .25);
+    applyEnemyDamage(projectile.target, projectile.damage, projectile.type);
+    addCombatEffect(x, y, projectile.target.type === "boss" ? 25 : 12, projectile.target.type === "boss" ? "#f0ca78" : projectile.color, .25);
   }
 
   function acquireTarget(tower, stats) {
     let target = null;
+    let bestPriority = -Infinity;
     for (const enemy of enemies) {
-      if (enemy.health <= 0 || Math.hypot(enemy.x - tower.x, enemy.y - tower.y) > stats.range) continue;
-      if (!target || enemy.progress > target.progress) target = enemy;
+      if (enemy.health <= 0 || enemy.airborne !== stats.targetsAir || Math.hypot(enemy.x - tower.x, enemy.y - tower.y) > stats.range) continue;
+      let priority = enemy.progress;
+      if (tower.type === "sniperTower" && enemy.type === "boss") priority += 1050;
+      if (tower.type === "sniperTower" && enemy.type === "eliteSquad") priority += 280;
+      if (tower.type === "heavyCannon" && (enemy.type === "heavyTank" || enemy.type === "apc" || enemy.type === "boss")) priority += 220;
+      if (tower.type === "machineGun" && (enemy.type === "infantry" || enemy.type === "scoutJeep")) priority += 70;
+      if (tower.type === "antiAircraft" && enemy.type === "helicopter") priority += 120;
+      if (priority > bestPriority) {
+        target = enemy;
+        bestPriority = priority;
+      }
     }
     return target;
   }
@@ -1179,15 +1706,18 @@
       splash: stats.splash,
       color: stats.color,
       type: tower.type,
+      faction: "friendly",
       angle: Math.atan2(target.y - tower.y, target.x - tower.x)
     });
   }
 
   function updateCombat(delta) {
     towers.forEach((tower) => {
+      if (tower.destroyed) return;
       const stats = TOWERS[tower.type];
       tower.cooldown = Math.max(0, tower.cooldown - delta);
       tower.flash = Math.max(0, tower.flash - delta);
+      tower.hitFlash = Math.max(0, tower.hitFlash - delta);
       const target = acquireTarget(tower, stats);
       if (!target) return;
       tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
@@ -1196,7 +1726,10 @@
 
     for (let index = projectiles.length - 1; index >= 0; index -= 1) {
       const projectile = projectiles[index];
-      if (projectile.target.health <= 0 || !enemies.includes(projectile.target)) {
+      const targetIsValid = projectile.faction === "hostile"
+        ? projectile.targetType === "base" || towers.includes(projectile.target) && !projectile.target.destroyed
+        : projectile.target.health > 0 && enemies.includes(projectile.target);
+      if (!targetIsValid) {
         projectiles.splice(index, 1);
         continue;
       }
@@ -1214,6 +1747,10 @@
         projectile.y += dy / distance * travel;
         projectile.angle = Math.atan2(dy, dx);
       }
+    }
+
+    for (let index = towers.length - 1; index >= 0; index -= 1) {
+      if (towers[index].destroyed) towers.splice(index, 1);
     }
 
     for (let index = combatEffects.length - 1; index >= 0; index -= 1) {
@@ -1252,7 +1789,8 @@
         emitDust(enemy);
         enemy.dustTimer += .18;
       }
-      let movement = enemy.speed * delta;
+      const currentSpeed = enemy.speed * (enemy.boostTime > 0 ? 1.65 : 1);
+      let movement = currentSpeed * delta;
       while (movement > 0 && enemy.routeIndex < ROUTE.length) {
         const target = ROUTE[enemy.routeIndex];
         const dx = target.x - enemy.x;
@@ -1269,23 +1807,27 @@
           movement = 0;
         }
       }
-      enemy.progress += enemy.speed * delta - movement;
+      enemy.progress += currentSpeed * delta - movement;
       if (enemy.health <= 0) {
         enemies.splice(index, 1);
         continue;
       }
       if (enemy.routeIndex >= ROUTE.length) {
         enemies.splice(index, 1);
-        baseHealth = Math.max(0, baseHealth - 1);
-        announce(`An infantry unit reached the base. Base integrity ${baseHealth} of ${BASE_HEALTH}.`);
+        baseHealth = Math.max(0, baseHealth - enemy.baseDamage);
+        announce(`${enemy.name} breached the perimeter for ${enemy.baseDamage} damage. Base integrity ${baseHealth} of ${BASE_HEALTH}.`);
         if (baseHealth <= 0) {
-          finishOperation(false);
+          finishOperation(false, enemy.type === "boss");
           return;
         }
+        continue;
       }
+      updateEnemyAbilities(enemy, delta);
+      if (gameState !== "running") return;
     }
 
     updateCombat(delta);
+    if (gameState !== "running") return;
     for (let index = enemies.length - 1; index >= 0; index -= 1) {
       if (enemies[index].health <= 0) enemies.splice(index, 1);
     }
@@ -1474,7 +2016,22 @@
     ctx.fillStyle = stats.color;
     ctx.globalAlpha = alpha * (tower.flash > 0 ? .9 : .65);
     ctx.fillRect(-17, 15, 6, 2);
+    if (tower.hitFlash > 0) {
+      ctx.globalAlpha = alpha * Math.min(1, tower.hitFlash * 5);
+      ctx.strokeStyle = "#e28368";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 27, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.restore();
+    if (tower.health < tower.maxHealth) {
+      const width = 32;
+      ctx.fillStyle = "rgba(17, 20, 17, .82)";
+      ctx.fillRect(tower.x - width / 2, tower.y + 27, width, 4);
+      ctx.fillStyle = tower.health / tower.maxHealth < .35 ? "#df7c69" : "#c2cf91";
+      ctx.fillRect(tower.x - width / 2, tower.y + 27, width * (tower.health / tower.maxHealth), 4);
+    }
   }
 
   function drawProjectiles(ctx) {
@@ -1485,19 +2042,19 @@
       ctx.rotate(projectile.angle);
       ctx.strokeStyle = projectile.color;
       ctx.fillStyle = projectile.color;
-      ctx.lineWidth = projectile.type === "machineGun" ? 1.6 : 2.8;
+      ctx.lineWidth = projectile.type === "machineGun" ? 1.6 : projectile.type === "enemyRocket" ? 3.2 : 2.8;
       ctx.globalAlpha = .72;
       ctx.beginPath();
-      ctx.moveTo(projectile.type === "artillery" ? -18 : -10, 0);
+      ctx.moveTo(projectile.type === "artillery" ? -18 : projectile.type === "enemyRocket" ? -15 : -10, 0);
       ctx.lineTo(projectile.type === "artillery" ? 1 : 2, 0);
       ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.beginPath();
-      ctx.ellipse(4, 0, projectile.type === "rocketLauncher" ? 5 : 3.2, projectile.type === "rocketLauncher" ? 2.6 : 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(4, 0, projectile.type === "rocketLauncher" || projectile.type === "enemyRocket" ? 5 : 3.2, projectile.type === "rocketLauncher" || projectile.type === "enemyRocket" ? 2.6 : 2, 0, 0, Math.PI * 2);
       ctx.fill();
-      if (projectile.type === "rocketLauncher") {
+      if (projectile.type === "rocketLauncher" || projectile.type === "enemyRocket") {
         ctx.globalAlpha = .48;
-        ctx.fillStyle = "#c5a16f";
+        ctx.fillStyle = projectile.type === "enemyRocket" ? "#dc795d" : "#c5a16f";
         ctx.beginPath();
         ctx.moveTo(-2, -2);
         ctx.lineTo(-11, 0);
@@ -1615,7 +2172,19 @@
 
     const type = selectedTowerType;
     placementFeedback = "";
-    const tower = { id: nextTowerId, type, x: position.x, y: position.y, angle: 0, cooldown: .2, flash: 0 };
+    const tower = {
+    id: nextTowerId,
+    type,
+    x: position.x,
+    y: position.y,
+    angle: 0,
+    cooldown: .2,
+    flash: 0,
+    hitFlash: 0,
+    health: 150,
+    maxHealth: 150,
+    destroyed: false
+    };
     nextTowerId += 1;
     resources -= TOWERS[type].cost;
     towerControlsDirty = true;
@@ -1629,19 +2198,104 @@
     const target = ROUTE[Math.min(enemy.routeIndex, ROUTE.length - 1)];
     const facing = Math.atan2(target.y - enemy.y, target.x - enemy.x) + Math.PI / 2;
     const frame = reducedMotion.matches ? 1 : Math.floor((time * 9 + enemy.phase) % infantryFrames.length);
+    if (enemy.type === "rocketVehicle" && enemy.attackWindup > 0 && enemy.attackTarget) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(232, 130, 91, .86)";
+      ctx.fillStyle = "rgba(205, 87, 67, .10)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.arc(enemy.attackTarget.x, enemy.attackTarget.y, 28 + Math.sin(time * 16) * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    if (enemy.type === "boss" && enemy.attackWindup > 0) {
+      const pulse = .9 + Math.sin(time * 12) * .08;
+      ctx.save();
+      ctx.fillStyle = `rgba(206, 93, 68, ${.08 * pulse})`;
+      ctx.strokeStyle = "rgba(234, 133, 95, .88)";
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([10, 7]);
+      ctx.beginPath();
+      ctx.arc(enemy.attackX, enemy.attackY, 170, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(enemy.attackX - 12, enemy.attackY);
+      ctx.lineTo(enemy.attackX + 12, enemy.attackY);
+      ctx.moveTo(enemy.attackX, enemy.attackY - 12);
+      ctx.lineTo(enemy.attackX, enemy.attackY + 12);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (enemy.type === "eliteSquad" && enemy.regenDelay <= 0 && enemy.health < enemy.maxHealth) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(174, 202, 128, ${.34 + Math.sin(time * 7 + enemy.phase) * .14})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.radius + 8, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.save();
+    if (enemy.airborne) {
+      ctx.fillStyle = "rgba(15, 20, 17, .34)";
+      ctx.beginPath();
+      ctx.ellipse(enemy.x + 5, enemy.y + 14, enemy.type === "helicopter" ? 26 : 17, 10, -.12, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.translate(enemy.x, enemy.y);
     ctx.rotate(facing);
-    const sprite = infantryFrames[frame];
-    if (sprite) ctx.drawImage(sprite, -24, -32);
+    const infantryEnemy = enemy.type === "infantry" || enemy.type === "eliteSquad";
+    const sprite = enemy.type === "eliteSquad"
+      ? eliteFrames[frame]
+      : enemy.type === "infantry"
+        ? infantryFrames[frame]
+        : enemySprites[enemy.type];
+    if (sprite) {
+      if (infantryEnemy) {
+        ctx.drawImage(sprite, -24, -32);
+      } else {
+        const size = enemy.type === "boss" ? 104 : enemy.type === "combatDrone" ? 54 : 68;
+        ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
+      }
+    }
+    if (enemy.airborne && !reducedMotion.matches) {
+      ctx.rotate(-facing);
+      ctx.rotate(time * (enemy.type === "helicopter" ? 18 : 25) + enemy.phase);
+      ctx.strokeStyle = "rgba(207, 204, 167, .78)";
+      ctx.lineWidth = enemy.type === "helicopter" ? 2 : 1.4;
+      ctx.beginPath();
+      ctx.moveTo(enemy.type === "helicopter" ? -23 : -15, 0);
+      ctx.lineTo(enemy.type === "helicopter" ? 23 : 15, 0);
+      ctx.stroke();
+    }
     ctx.restore();
 
-    const barWidth = 23;
-    const barY = enemy.y - 28;
+    if (enemy.hitFlash > 0) {
+      ctx.save();
+      ctx.strokeStyle = `rgba(248, 220, 156, ${Math.min(.9, enemy.hitFlash * 5)})`;
+      ctx.lineWidth = enemy.type === "boss" ? 4 : 2;
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.radius + 5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    const barWidth = enemy.type === "boss" ? 100 : enemy.type === "heavyTank" || enemy.type === "apc" ? 42 : enemy.airborne ? 36 : 30;
+    const barY = enemy.y - (enemy.type === "boss" ? 57 : enemy.radius + 9);
     ctx.fillStyle = "rgba(16, 20, 16, .76)";
-    ctx.fillRect(enemy.x - barWidth / 2, barY, barWidth, 3);
-    ctx.fillStyle = "#c4ce9b";
-    ctx.fillRect(enemy.x - barWidth / 2, barY, barWidth * (enemy.health / enemy.maxHealth), 3);
+    ctx.fillRect(enemy.x - barWidth / 2, barY, barWidth, enemy.type === "boss" ? 7 : 4);
+    ctx.fillStyle = enemy.type === "boss" ? "#d28d62" : enemy.health / enemy.maxHealth < .3 ? "#d68167" : "#c4ce9b";
+    ctx.fillRect(enemy.x - barWidth / 2, barY, barWidth * (enemy.health / enemy.maxHealth), enemy.type === "boss" ? 7 : 4);
+    if (enemy.type === "boss") {
+      ctx.fillStyle = "#e9c58f";
+      ctx.font = "700 10px Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("COMMAND TANK", enemy.x, barY - 5);
+    }
   }
 
   function drawBase(ctx) {
