@@ -49,13 +49,44 @@ h1 span { color: var(--olive-bright); }
 .game-intro { margin-bottom: 0; color: var(--muted); font-size: 11px; }
 .game-intro strong { color: #bdc59e; font-weight: 600; }
 
-.tactical-bar { display: grid; grid-template-columns: minmax(210px, 1.5fr) repeat(4, minmax(100px, 1fr)); gap: 7px; margin: 0 auto 9px; }
+.tactical-bar { display: grid; grid-template-columns: minmax(170px, 1.4fr) repeat(5, minmax(90px, 1fr)); gap: 7px; margin: 0 auto 9px; }
 .tactical-stat { position: relative; display: grid; min-height: 56px; grid-template-columns: 1fr auto; align-content: center; align-items: center; gap: 3px 8px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; background: linear-gradient(145deg, rgba(28, 36, 27, .88), rgba(21, 28, 22, .82)); }
 .stat-label { color: #9da58f; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; }
 .tactical-stat strong { color: #e1e4d3; font-family: var(--display); font-size: 14px; font-variant-numeric: tabular-nums; }
 .integrity-track { grid-column: 1 / -1; height: 3px; overflow: hidden; background: rgba(255,255,255,.1); }
 .integrity-track i { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #819662, #c0cb8c); transition: width .2s ease, background .2s ease; }
 .integrity-track i.is-critical { background: var(--danger); }
+.build-panel { margin-bottom: 9px; padding: 9px; border: 1px solid var(--line); border-radius: 7px; background: linear-gradient(145deg, rgba(28, 36, 27, .94), rgba(21, 28, 22, .9)); }
+.build-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+.build-heading > div { display: flex; flex-direction: column; gap: 3px; }
+.build-heading .control-label { margin: 0; color: #aab790; }
+.build-heading strong { color: #dce1ce; font-size: 10px; }
+.build-cancel { min-height: 27px; padding: 0 8px; font-size: 8px; }
+.tower-options { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.tower-option { display: grid; min-height: 60px; grid-template-columns: 28px minmax(0, 1fr); grid-template-rows: 1fr 1fr; align-items: center; gap: 1px 6px; padding: 6px 7px; border: 1px solid rgba(198, 208, 171, .14); border-radius: 5px; background: rgba(255,255,255,.025); color: #e1e4d6; text-align: left; cursor: pointer; transition: background .16s ease, border-color .16s ease; }
+.tower-option:hover:not(:disabled), .tower-option.is-selected { border-color: rgba(211, 223, 160, .52); background: rgba(135, 157, 97, .15); }
+.tower-option:disabled { cursor: not-allowed; opacity: .48; }
+.tower-option.cannot-afford > span:last-child { color: #b98272; }
+.tower-option strong { overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.tower-option > span:last-child { grid-column: 2; color: #9da58f; font-size: 7px; white-space: nowrap; }
+.tower-glyph { position: relative; grid-row: 1 / -1; display: block; width: 24px; height: 24px; border: 1px solid #8e9876; border-radius: 6px; background: linear-gradient(145deg, #596349, #2c382d); box-shadow: inset 0 0 0 3px rgba(13, 19, 14, .3); }
+.tower-glyph::before, .tower-glyph::after { position: absolute; content: ""; }
+.tower-glyph-mg::before { top: 10px; left: 3px; width: 17px; height: 3px; background: #c1bd96; }
+.tower-glyph-mg::after { top: 6px; left: 9px; width: 7px; height: 11px; border: 1px solid #c1bd96; border-radius: 2px; }
+.tower-glyph-cannon::before { top: 9px; left: 2px; width: 19px; height: 5px; background: #c2b58b; }
+.tower-glyph-cannon::after { top: 5px; left: 10px; width: 9px; height: 13px; border-radius: 50%; background: #788066; }
+.tower-glyph-rocket::before { top: 5px; left: 6px; width: 12px; height: 14px; border: 1px solid #d0a978; border-radius: 5px 5px 2px 2px; }
+.tower-glyph-rocket::after { top: 8px; left: 3px; width: 4px; height: 8px; background: #a66d4e; box-shadow: 12px 0 #a66d4e; }
+.tower-glyph-sniper::before { top: 10px; left: 1px; width: 21px; height: 2px; background: #c1bd96; }
+.tower-glyph-sniper::after { top: 6px; left: 11px; width: 5px; height: 11px; background: #82896a; }
+.tower-glyph-aa::before { top: 4px; left: 10px; width: 3px; height: 16px; background: #c1bd96; transform: rotate(38deg); box-shadow: 4px 0 #c1bd96; }
+.tower-glyph-aa::after { top: 8px; left: 4px; width: 15px; height: 8px; border: 1px solid #c1bd96; }
+.tower-glyph-artillery::before { top: 7px; left: 2px; width: 19px; height: 6px; background: #c1bd96; transform: rotate(-24deg); }
+.tower-glyph-artillery::after { top: 9px; left: 8px; width: 8px; height: 10px; border-radius: 3px; background: #798164; }
+.build-guidance { margin: 7px 1px 0; color: #9da58f; font-size: 8px; line-height: 1.4; }
+.tower-inspector { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 14px; margin-top: 7px; padding: 7px 9px; border-left: 2px solid #91a16f; background: rgba(184, 197, 139, .05); color: #b9bead; font-size: 8px; }
+.tower-inspector strong { color: var(--olive-bright); font-size: 9px; }
+.tower-inspector[hidden] { display: none; }
 .board-wrap { position: relative; overflow: hidden; border: 1px solid rgba(190, 204, 157, .25); border-radius: 9px; background: #43523b; box-shadow: 0 15px 44px rgba(0,0,0,.28), 0 0 32px rgba(109, 133, 76, .08); }
 #battlefield { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; touch-action: none; cursor: grab; }
 #battlefield.is-dragging { cursor: grabbing; }
@@ -127,13 +158,21 @@ kbd { min-width: 17px; padding: 2px 4px; border: 1px solid rgba(198, 208, 171, .
 .setting-row input { width: 17px; height: 17px; accent-color: #9cad75; }
 .settings-saved { margin: 8px 0 10px; color: #97a188; font-size: 8px; }
 .settings-done { width: 100%; }
+.tutorial-button { display: flex; margin: 5px auto; border-color: transparent; background: transparent; color: #aab19e; font-size: 8px; }
+.tutorial-button:hover { color: var(--olive-bright); }
+.tutorial-reopen { margin-top: 8px; }
+.tutorial-list { display: grid; gap: 10px; margin: 0 0 12px; padding-left: 20px; color: #b9bead; font-size: 9px; line-height: 1.5; text-align: left; }
+.tutorial-list li { padding-left: 3px; }
+.tutorial-list li::marker { color: var(--olive-bright); font-weight: 700; }
+.tutorial-list strong, .tutorial-list span { display: block; }
+.tutorial-list strong { margin-bottom: 2px; color: #e0e5d0; }
+.tutorial-note { margin: 0 0 10px; padding: 8px; border-left: 2px solid #91a16f; background: rgba(184, 197, 139, .05); color: #aeb8a1; font-size: 8px; line-height: 1.45; text-align: left; }
 .game-footer { min-height: 48px; margin-top: 5px; border-top: 1px solid rgba(198, 208, 171, .08); color: #788273; font-size: 9px; }
 .game-footer a { color: #a9b29b; }
 
 @media (max-width: 760px) {
-  .tactical-bar { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .tactical-stat:first-child { grid-column: span 2; }
-  .tactical-stat:nth-child(5) { grid-column: span 2; }
+  .tactical-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tower-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .game-main { padding-top: 17px; }
 }
 @media (max-width: 540px) {
@@ -142,8 +181,10 @@ kbd { min-width: 17px; padding: 2px 4px; border: 1px solid rgba(198, 208, 171, .
   .game-brand { gap: 6px; font-size: 11px; }
   .brand-mark { width: 22px; height: 22px; }
   .back-link { gap: 5px; font-size: 10px; }
-  .tactical-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tactical-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tactical-stat:first-child, .tactical-stat:nth-child(5) { grid-column: auto; }
+  .tower-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tower-option { min-height: 56px; padding: 5px; }
   .control-deck { gap: 7px; }
   .speed-control, .camera-controls { flex: 1 1 auto; }
   .control-label { font-size: 6px; }

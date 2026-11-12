@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111710">
-  <meta name="description" content="Hold the Green Valley perimeter in LAB-Z Frontline Defense, a modern military defense simulation.">
+  <meta name="description" content="Build and command a modern military defense in LAB-Z Frontline Defense.">
   <title>LAB-Z Frontline Defense — LAB-Z Arcade</title>
   <link rel="stylesheet" href="./frontline-defense.css">
   <script defer src="./frontline-defense.js"></script>
@@ -32,11 +32,41 @@
         <div class="tactical-stat"><span class="stat-label">Wave</span><strong id="wave-value">—</strong></div>
         <div class="tactical-stat"><span class="stat-label">Threats in sector</span><strong id="threat-value">0</strong></div>
         <div class="tactical-stat"><span class="stat-label">Mission score</span><strong id="score-value">0</strong></div>
+        <div class="tactical-stat"><span class="stat-label">Field credits</span><strong id="resource-value">320</strong></div>
         <div class="tactical-stat"><span class="stat-label">Endless record</span><strong id="record-value">Wave 0</strong></div>
       </div>
 
+      <section class="build-panel" aria-label="Tower arsenal">
+        <div class="build-heading">
+          <div><span class="control-label">FIELD ENGINEERING</span><strong>Select a defensive emplacement</strong></div>
+          <button class="text-button build-cancel" id="cancel-build-button" type="button">Cancel placement</button>
+        </div>
+        <div class="tower-options" id="tower-options" role="group" aria-label="Available tower types">
+          <button class="tower-option" type="button" data-tower="machineGun" aria-pressed="false" aria-label="Machine Gun, 90 credits">
+            <span class="tower-glyph tower-glyph-mg" aria-hidden="true"></span><strong>Machine Gun</strong><span>90 cr · Fast fire</span>
+          </button>
+          <button class="tower-option" type="button" data-tower="heavyCannon" aria-pressed="false" aria-label="Heavy Cannon, 155 credits">
+            <span class="tower-glyph tower-glyph-cannon" aria-hidden="true"></span><strong>Heavy Cannon</strong><span>155 cr · Blast</span>
+          </button>
+          <button class="tower-option" type="button" data-tower="rocketLauncher" aria-pressed="false" aria-label="Rocket Launcher, 175 credits">
+            <span class="tower-glyph tower-glyph-rocket" aria-hidden="true"></span><strong>Rocket Launcher</strong><span>175 cr · Splash</span>
+          </button>
+          <button class="tower-option" type="button" data-tower="sniperTower" aria-pressed="false" aria-label="Sniper Tower, 140 credits">
+            <span class="tower-glyph tower-glyph-sniper" aria-hidden="true"></span><strong>Sniper Tower</strong><span>140 cr · Precision</span>
+          </button>
+          <button class="tower-option" type="button" data-tower="antiAircraft" aria-pressed="false" aria-label="Anti-Aircraft, 125 credits">
+            <span class="tower-glyph tower-glyph-aa" aria-hidden="true"></span><strong>Anti-Aircraft</strong><span>125 cr · Air defense</span>
+          </button>
+          <button class="tower-option" type="button" data-tower="artillery" aria-pressed="false" aria-label="Artillery, 250 credits">
+            <span class="tower-glyph tower-glyph-artillery" aria-hidden="true"></span><strong>Artillery</strong><span>250 cr · Long range</span>
+          </button>
+        </div>
+        <p class="build-guidance" id="build-guidance" aria-live="polite">Deployments are available during an operation. Select an emplacement, then tap or click clear terrain.</p>
+        <div class="tower-inspector" id="tower-inspector" aria-live="polite" hidden></div>
+      </section>
+
       <div class="board-wrap" id="board-wrap">
-        <canvas id="battlefield" width="1200" height="675" tabindex="0" aria-label="Top-down Green Valley battlefield. Drag to pan, use the mouse wheel to zoom, or use WASD and arrow keys to move the camera."></canvas>
+        <canvas id="battlefield" width="1200" height="675" tabindex="0" aria-label="Top-down Green Valley battlefield. Select an emplacement and click clear terrain to place it. Tap a built tower to inspect it. Drag to pan, use the mouse wheel to zoom, or use WASD and arrow keys to move the camera."></canvas>
         <div class="map-readout" aria-hidden="true"><span>MAP GRID</span><strong id="grid-readout">E-04</strong></div>
         <div class="overlay" id="phase-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
           <section class="overlay-panel">
@@ -62,7 +92,8 @@
                 <span class="brief-label">MISSION BRIEF</span>
                 <p>Protect the base through two incoming waves. Infantry that reaches the perimeter will reduce base integrity.</p>
               </div>
-              <p class="stage-note">Stage 2 battlefield visuals. Defensive placements and combat systems are not part of this build.</p>
+              <p class="stage-note">Build your perimeter with limited field credits. Towers target infantry automatically; protect the forward base.</p>
+              <button class="text-button tutorial-button" id="tutorial-button" type="button">How to play</button>
               <button class="primary-button" id="start-button" type="button">Begin campaign <span aria-hidden="true">↗</span></button>
               <button class="text-button" id="menu-settings-button" type="button">Simulation settings</button>
             </div>
@@ -103,6 +134,7 @@
         </div>
       </div>
       <p class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / arrows <span>Pan</span><i></i><kbd>Drag</kbd> <span>Pan</span><i></i><kbd>Wheel</kbd> <span>Zoom</span><i></i><kbd>P</kbd> / <kbd>Esc</kbd> <span>Pause</span></p>
+      <button class="text-button tutorial-button tutorial-reopen" id="tutorial-reopen-button" type="button">How to play</button>
       <p class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">Select an operation and begin the simulation.</p>
     </section>
   </main>
@@ -121,6 +153,21 @@
       <p class="settings-saved" id="settings-saved" aria-live="polite">Preferences are saved on this device.</p>
       <button class="primary-button settings-done" value="close">Done</button>
     </form>
+  </dialog>
+
+  <dialog class="settings-dialog tutorial-dialog" id="tutorial-dialog" aria-labelledby="tutorial-title">
+    <div class="settings-panel">
+      <div class="settings-heading"><div><p class="overlay-kicker">FIELD GUIDE · SECTOR 07</p><h2 id="tutorial-title">How to <span>play</span></h2></div><button class="control-button close-button" id="tutorial-close-button" type="button" aria-label="Close field guide">×</button></div>
+      <ol class="tutorial-list">
+        <li><strong>Protect the base.</strong><span>Infantry that reaches the forward operating base removes one integrity. Hold through both Campaign waves, or survive as long as possible in Endless.</span></li>
+        <li><strong>Earn and spend field credits.</strong><span>Start with 320 credits. Destroyed enemies and completed waves award more; select a tower only when you can afford it.</span></li>
+        <li><strong>Place on clear terrain.</strong><span>Choose an emplacement, then click or tap a clear spot away from roads, scenery, other towers, and the map edge. Invalid positions never charge you.</span></li>
+        <li><strong>Let the defenses engage.</strong><span>Every tower automatically targets the furthest-along enemy in range. Inspect a placed tower for its stats; select another emplacement to continue building.</span></li>
+        <li><strong>Command the camera.</strong><span>Drag or use WASD / arrow keys to pan; use the wheel or zoom controls to zoom. Pause freezes enemies, towers, and projectiles.</span></li>
+      </ol>
+      <p class="tutorial-note">Anti-Air emplacements are placeable now and can engage ground infantry. Flying enemies are not included in this build.</p>
+      <button class="primary-button settings-done" id="tutorial-done-button" type="button">Return to field</button>
+    </div>
   </dialog>
 
   <footer class="game-footer"><span>LAB-Z ARCADE · FIELD SIMULATION</span><a href="../../games.html">Explore other games <span aria-hidden="true">↗</span></a></footer>

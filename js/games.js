@@ -1,7 +1,7 @@
 window.LABZ_GAMES = [
   {
     title: "LAB-Z Frontline Defense",
-    description: "Hold the Green Valley perimeter in a modern military defense simulation.",
+    description: "Build six tactical emplacements, defeat infantry waves, and protect the Green Valley base.",
     categories: ["strategy", "action"],
     art: "frontline",
     glyph: "⌖",

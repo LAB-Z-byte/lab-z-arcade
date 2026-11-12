@@ -4,6 +4,7 @@
   const WORLD = { width: 1800, height: 1000 };
   const BASE_HEALTH = 20;
   const CAMPAIGN_WAVES = 2;
+  const STARTING_RESOURCES = 320;
   const SETTINGS_KEY = "labz-frontline-settings-v1";
   const RECORD_KEY = "labz-frontline-endless-record-v1";
   const SPEEDS = [0.5, 1, 2];
@@ -19,6 +20,14 @@
     { x: 940, y: 820 },
     { x: 1770, y: 820 }
   ];
+  const TOWERS = {
+    machineGun: { name: "Machine Gun", cost: 90, range: 178, damage: 13, reload: .34, projectileSpeed: 880, splash: 0, color: "#e1c581", role: "Rapid fire · infantry suppression" },
+    heavyCannon: { name: "Heavy Cannon", cost: 155, range: 220, damage: 68, reload: 2.15, projectileSpeed: 420, splash: 48, color: "#e7a36f", role: "Heavy direct hit · blast damage" },
+    rocketLauncher: { name: "Rocket Launcher", cost: 175, range: 248, damage: 40, reload: 1.35, projectileSpeed: 310, splash: 64, color: "#e48558", role: "Rocket salvo · wide splash" },
+    sniperTower: { name: "Sniper Tower", cost: 140, range: 332, damage: 105, reload: 2.25, projectileSpeed: 1150, splash: 0, color: "#d7dfbd", role: "Long range · precision strike" },
+    antiAircraft: { name: "Anti-Aircraft", cost: 125, range: 260, damage: 19, reload: .72, projectileSpeed: 760, splash: 0, color: "#91c5a1", role: "Rapid air-defense mount · ground capable" },
+    artillery: { name: "Artillery", cost: 250, range: 445, damage: 94, reload: 4.1, projectileSpeed: 250, splash: 94, color: "#f0ca78", role: "Very long range · heavy area strike" }
+  };
 
   const canvas = document.querySelector("#battlefield");
   const context = canvas?.getContext("2d");
@@ -35,6 +44,7 @@
   const waveValue = document.querySelector("#wave-value");
   const threatValue = document.querySelector("#threat-value");
   const scoreValue = document.querySelector("#score-value");
+  const resourceValue = document.querySelector("#resource-value");
   const recordValue = document.querySelector("#record-value");
   const missionStatus = document.querySelector("#mission-status");
   const pauseButton = document.querySelector("#pause-button");
@@ -46,12 +56,16 @@
   const settingsSaved = document.querySelector("#settings-saved");
   const gridReadout = document.querySelector("#grid-readout");
   const zoomValue = document.querySelector("#zoom-value");
+  const buildGuidance = document.querySelector("#build-guidance");
+  const towerInspector = document.querySelector("#tower-inspector");
+  const towerOptionButtons = [...document.querySelectorAll(".tower-option[data-tower]")];
+  const tutorialDialog = document.querySelector("#tutorial-dialog");
   const requiredElements = [
     canvas, context, startButton, phaseOverlay, overlayTitle, overlayCopy, startView,
     pauseView, resultView, gameStatus, baseValue, integrityBar, waveValue,
-    threatValue, scoreValue, recordValue, missionStatus, pauseButton, restartButton,
+    threatValue, scoreValue, resourceValue, recordValue, missionStatus, pauseButton, restartButton,
     settingsDialog, settingsButton, defaultSpeed, terrainDetail, settingsSaved,
-    gridReadout, zoomValue
+    gridReadout, zoomValue, buildGuidance, towerInspector, tutorialDialog
   ];
 
   if (requiredElements.some((element) => !element)) {
@@ -78,6 +92,11 @@
   const speedButtons = [...document.querySelectorAll(".speed-button[data-speed]")];
   const enemies = [];
   const dustParticles = [];
+  const towers = [];
+  const projectiles = [];
+  const combatEffects = [];
+  const sceneryObstacles = [];
+  const placementPreview = { x: 0, y: 0, type: "", angle: 0, flash: 0 };
   const camera = { x: WORLD.width / 2, y: WORLD.height / 2 };
   const pressedKeys = new Set();
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -88,6 +107,7 @@
   let wave = 0;
   let wavesCompleted = 0;
   let baseHealth = BASE_HEALTH;
+  let resources = STARTING_RESOURCES;
   let score = 0;
   let enemiesToSpawn = 0;
   let spawnTimer = 0;
@@ -100,6 +120,14 @@
   let lastFrameTime = 0;
   let frameHandle = 0;
   let pointerDrag = null;
+  let pointerWorld = null;
+  let selectedTowerType = null;
+  let selectedTower = null;
+  let placementFeedback = "";
+  let towerControlsDirty = true;
+  let nextTowerId = 1;
+  let nextEnemyId = 1;
+  let tutorialResumeAfterClose = false;
   let bestEndlessWave = readRecord();
   let infantryDustTimer = 0;
   const infantryFrames = createInfantryFrames();
@@ -481,6 +509,10 @@
     ctx.restore();
   }
 
+  function registerObstacle(x, y, radius) {
+    sceneryObstacles.push({ x, y, radius });
+  }
+
   function addStaticScenery(ctx, detailEnabled, random) {
     const trees = [
       [75, 105, 1.2], [151, 84, .93], [216, 112, 1.12], [88, 292, 1.05], [160, 325, 1.22],
@@ -496,7 +528,10 @@
       [565, 744, 1.04], [752, 764, 1.2], [1289, 382, 1.19], [1375, 471, 1.28],
       [1461, 567, 1.08], [1573, 612, 1.24], [1650, 694, 1.12], [1519, 751, 1.2]
     ];
-    trees.forEach(([x, y, scale], index) => drawTree(ctx, x, y, scale, index));
+    trees.forEach(([x, y, scale], index) => {
+      drawTree(ctx, x, y, scale, index);
+      registerObstacle(x, y, 25 * scale + 12);
+    });
 
     const bushes = [
       [248, 97], [430, 135], [604, 102], [846, 118], [1088, 96], [1464, 139], [1624, 94],
@@ -507,24 +542,43 @@
       [202, 680], [415, 777], [645, 735], [1304, 431], [1428, 526], [1513, 563],
       [1634, 644], [1612, 767]
     ];
-    bushes.forEach(([x, y], index) => drawBush(ctx, x, y, .75 + index % 3 * .13, index));
+    bushes.forEach(([x, y], index) => {
+      const scale = .75 + index % 3 * .13;
+      drawBush(ctx, x, y, scale, index);
+      registerObstacle(x, y, 19 * scale + 10);
+    });
 
     const rocks = [
       [113, 294], [195, 384], [385, 326], [552, 153], [619, 493], [844, 330],
       [1010, 91], [1102, 346], [1317, 246], [1486, 417], [1620, 508], [121, 841],
       [471, 760], [765, 895], [1315, 842], [1683, 940], [975, 697], [348, 556]
     ];
-    rocks.forEach(([x, y], index) => drawRock(ctx, x, y, .66 + index % 3 * .18, index));
+    rocks.forEach(([x, y], index) => {
+      const scale = .66 + index % 3 * .18;
+      drawRock(ctx, x, y, scale, index);
+      registerObstacle(x, y, 18 * scale + 9);
+    });
 
     if (detailEnabled) {
-      drawFence(ctx, [[71, 486], [121, 486], [171, 486], [221, 486]]);
-      drawFence(ctx, [[374, 84], [424, 84], [474, 84], [524, 84]]);
-      drawFence(ctx, [[1346, 530], [1396, 530], [1446, 530]]);
+      const fences = [
+        [[71, 486], [121, 486], [171, 486], [221, 486]],
+        [[374, 84], [424, 84], [474, 84], [524, 84]],
+        [[1346, 530], [1396, 530], [1446, 530]]
+      ];
+      fences.forEach((points) => {
+        drawFence(ctx, points);
+        points.forEach(([x, y]) => registerObstacle(x, y, 15));
+      });
       drawSandbags(ctx, 527, 304, 5, -.08);
       drawSandbags(ctx, 1066, 315, 4, .14);
       drawSandbags(ctx, 1324, 853, 5, -.05);
       drawOutpost(ctx, 1540, 444, .9);
       drawOutpost(ctx, 353, 820, .7);
+      registerObstacle(527, 304, 51);
+      registerObstacle(1066, 315, 43);
+      registerObstacle(1324, 853, 51);
+      registerObstacle(1540, 444, 54);
+      registerObstacle(353, 820, 48);
 
       for (let index = 0; index < 34; index += 1) {
         const x = 38 + random() * (WORLD.width - 76);
@@ -541,6 +595,7 @@
         ctx.fillStyle = "rgba(170, 169, 132, .38)";
         ctx.fillRect(-width / 2, 0, width, 1);
         ctx.restore();
+        registerObstacle(x, y, Math.hypot(width, height) / 2 + 8);
       }
     }
   }
@@ -666,6 +721,7 @@
   function drawTerrain(detailEnabled) {
     const ctx = terrainContext;
     const random = makeRandom(70831);
+    sceneryObstacles.length = 0;
     ctx.clearRect(0, 0, WORLD.width, WORLD.height);
     drawTerrainTexture(ctx, random);
     drawRoad(ctx, random);
@@ -791,6 +847,47 @@
     gridReadout.textContent = `${row}-${column}`;
   }
 
+  function updateTowerControls() {
+    towerOptionButtons.forEach((button) => {
+      const selected = button.dataset.tower === selectedTowerType;
+      const tower = TOWERS[button.dataset.tower];
+      button.classList.toggle("is-selected", selected);
+      button.classList.toggle("cannot-afford", resources < tower.cost);
+      button.setAttribute("aria-pressed", String(selected));
+      button.setAttribute("aria-label", `${tower.name}, ${tower.cost} credits${resources < tower.cost ? ", not currently affordable" : ""}`);
+    });
+
+    if (selectedTower) {
+      const stats = TOWERS[selectedTower.type];
+      towerInspector.hidden = false;
+      const airNote = selectedTower.type === "antiAircraft" ? "<span>Flying enemies are not in this build</span>" : "";
+      towerInspector.innerHTML = `<strong>${stats.name} · FIELD UNIT ${String(selectedTower.id).padStart(2, "0")}</strong><span>${stats.role}</span><span>Damage ${stats.damage}</span><span>Range ${stats.range}</span><span>${(1 / stats.reload).toFixed(2)} shots/sec</span><span>Standard issue · no upgrades</span>${airNote}`;
+      buildGuidance.textContent = `${stats.name} selected. Its range is outlined; choose another emplacement to build or tap clear ground to deselect.`;
+    } else {
+      towerInspector.hidden = true;
+      towerInspector.textContent = "";
+    }
+
+    if (selectedTowerType) {
+      const stats = TOWERS[selectedTowerType];
+      const available = resources >= stats.cost;
+      buildGuidance.textContent = placementFeedback || (gameState !== "running"
+        ? `${stats.name} · ${stats.cost} credits · range ${stats.range}. ${gameState === "ready" ? "Begin" : gameState === "paused" ? "Resume" : "Restart"} an operation to place it.`
+        : available
+          ? `${stats.name} · ${stats.cost} credits · range ${stats.range}. Click or tap clear terrain to deploy.`
+          : `${stats.name} costs ${stats.cost} credits; you have ${resources}. Defeat infantry or complete a wave to earn more.`);
+    } else if (!selectedTower) {
+      buildGuidance.textContent = gameState === "running"
+        ? "Select an emplacement, then click or tap clear terrain. Towers target the furthest-along infantry automatically."
+        : gameState === "ready"
+          ? "Deployments are available during an operation. Select an emplacement, then click or tap clear terrain."
+          : gameState === "paused"
+            ? "Operation paused. Resume to build or inspect emplacements."
+            : "Operation complete. Restart to deploy more emplacements.";
+    }
+    towerControlsDirty = false;
+  }
+
   function updateHud() {
     baseValue.textContent = `${baseHealth} / ${BASE_HEALTH}`;
     const integrity = Math.max(0, baseHealth / BASE_HEALTH * 100);
@@ -799,11 +896,13 @@
     waveValue.textContent = wave ? `${String(wave).padStart(2, "0")}${selectedMode === "campaign" ? ` / ${CAMPAIGN_WAVES}` : ""}` : "—";
     threatValue.textContent = String(enemies.length + enemiesToSpawn);
     scoreValue.textContent = String(score);
+    resourceValue.textContent = String(resources);
     recordValue.textContent = `Wave ${bestEndlessWave}`;
     pauseButton.disabled = gameState !== "running" && gameState !== "paused";
     pauseButton.innerHTML = gameState === "paused" ? '<span aria-hidden="true">▶</span> Resume' : '<span aria-hidden="true">Ⅱ</span> Pause';
     restartButton.disabled = gameState === "ready";
     updateCameraReadout();
+    if (towerControlsDirty) updateTowerControls();
   }
 
   function announce(message) {
@@ -829,8 +928,8 @@
       button.setAttribute("aria-pressed", String(selected));
     });
     document.querySelector("#mission-brief").innerHTML = mode === "campaign"
-      ? '<span class="brief-label">MISSION BRIEF</span><p>Protect the base through two incoming waves. Infantry that reaches the perimeter will reduce base integrity.</p>'
-      : `<span class="brief-label">SURVIVAL BRIEF · LOCAL RECORD: WAVE ${bestEndlessWave}</span><p>Endless waves increase in size. The operation ends when base integrity reaches zero.</p>`;
+      ? '<span class="brief-label">MISSION BRIEF</span><p>Build a perimeter with 320 starting credits. Earn rewards from infantry and waves; keep the base standing through two attacks.</p>'
+      : `<span class="brief-label">SURVIVAL BRIEF · LOCAL RECORD: WAVE ${bestEndlessWave}</span><p>Build with 320 starting credits. Endless waves grow stronger; earn rewards and defend the base for as long as possible.</p>`;
     startButton.innerHTML = mode === "campaign"
       ? 'Begin campaign <span aria-hidden="true">↗</span>'
       : 'Begin survival <span aria-hidden="true">↗</span>';
@@ -848,7 +947,7 @@
 
   function startWave(nextWave) {
     wave = nextWave;
-    enemiesToSpawn = 5 + (wave - 1) * 2;
+    enemiesToSpawn = 6 + Math.min(wave - 1, 24) * 2;
     spawnTimer = 0.35;
     intermissionTimer = 0;
     announce(`${selectedMode === "campaign" ? "Campaign" : "Endless"} wave ${wave} in progress. ${enemiesToSpawn} infantry units approaching.`);
@@ -857,13 +956,24 @@
 
   function beginOperation() {
     enemies.length = 0;
+    towers.length = 0;
+    projectiles.length = 0;
+    combatEffects.length = 0;
+    dustParticles.length = 0;
+    selectedTowerType = null;
+    selectedTower = null;
+    placementFeedback = "";
+    nextTowerId = 1;
+    nextEnemyId = 1;
     baseHealth = BASE_HEALTH;
+    resources = STARTING_RESOURCES;
     wave = 0;
     wavesCompleted = 0;
     score = 0;
     spawnTimer = 0;
     intermissionTimer = 0;
     gameState = "running";
+    towerControlsDirty = true;
     simulationSpeed = settings.speed;
     setSpeed(simulationSpeed);
     camera.x = WORLD.width / 2;
@@ -881,6 +991,7 @@
   function pauseOperation() {
     if (gameState !== "running") return;
     gameState = "paused";
+    towerControlsDirty = true;
     document.querySelector("#pause-base").textContent = `${baseHealth} / ${BASE_HEALTH}`;
     showOverlay("pause");
     overlayTitle.innerHTML = 'Operation <span>paused.</span>';
@@ -893,6 +1004,7 @@
   function resumeOperation() {
     if (gameState !== "paused") return;
     gameState = "running";
+    towerControlsDirty = true;
     hideOverlay();
     announce("Operation resumed.");
     updateHud();
@@ -901,9 +1013,18 @@
 
   function returnToMenu() {
     gameState = "ready";
+    towerControlsDirty = true;
     enemies.length = 0;
+    towers.length = 0;
+    projectiles.length = 0;
+    combatEffects.length = 0;
+    dustParticles.length = 0;
     enemiesToSpawn = 0;
     baseHealth = BASE_HEALTH;
+    resources = STARTING_RESOURCES;
+    selectedTowerType = null;
+    selectedTower = null;
+    placementFeedback = "";
     wave = 0;
     wavesCompleted = 0;
     score = 0;
@@ -918,6 +1039,7 @@
 
   function finishOperation(success) {
     gameState = success ? "won" : "lost";
+    towerControlsDirty = true;
     if (selectedMode === "endless") saveRecord(wavesCompleted);
     const headline = success ? "Campaign exercise complete." : "Base integrity lost.";
     missionStatus.textContent = success ? "Mission complete" : "Perimeter overrun";
@@ -926,7 +1048,7 @@
       ? "The Green Valley perimeter held through the full campaign exercise."
       : "Hostile infantry breached the perimeter. The operation has ended.";
     document.querySelector("#result-copy").textContent = selectedMode === "campaign"
-      ? `${headline} Defensive placements and combat systems are not part of this early-stage simulation.`
+      ? `${headline} Your emplacements held through the full campaign exercise.`
       : `${headline} Your best endless result is wave ${bestEndlessWave}.`;
     document.querySelector("#result-waves").textContent = String(wavesCompleted);
     document.querySelector("#result-integrity").textContent = `${baseHealth} / ${BASE_HEALTH}`;
@@ -938,17 +1060,20 @@
   }
 
   function spawnEnemy() {
-    const health = 100 + Math.max(0, wave - 1) * 8;
+    const health = 100 + Math.max(0, wave - 1) * 14;
     enemies.push({
+      id: nextEnemyId,
       x: ROUTE[0].x,
       y: ROUTE[0].y,
       routeIndex: 1,
+      progress: 0,
       health,
       maxHealth: health,
       speed: 72 + Math.min(wave - 1, 15) * 1.8,
       phase: Math.random() * Math.PI * 2,
       dustTimer: Math.random() * .16
     });
+    nextEnemyId += 1;
   }
 
   function emitDust(enemy) {
@@ -964,6 +1089,138 @@
       life: .42 + Math.random() * .28,
       size: 2 + Math.random() * 2.5
     });
+  }
+
+  function distanceToSegment(x, y, start, end) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const lengthSquared = dx * dx + dy * dy;
+    const progress = lengthSquared ? Math.max(0, Math.min(1, ((x - start.x) * dx + (y - start.y) * dy) / lengthSquared)) : 0;
+    return Math.hypot(x - (start.x + dx * progress), y - (start.y + dy * progress));
+  }
+
+  function validateTowerPlacement(type, x, y) {
+    const stats = TOWERS[type];
+    if (!stats || x < 42 || y < 42 || x > WORLD.width - 42 || y > WORLD.height - 42) {
+      return { valid: false, reason: "outside the battlefield" };
+    }
+    if (resources < stats.cost) return { valid: false, reason: `requires ${stats.cost} credits` };
+    for (let index = 0; index < ROUTE.length - 1; index += 1) {
+      if (distanceToSegment(x, y, ROUTE[index], ROUTE[index + 1]) < 62) {
+        return { valid: false, reason: "enemy road and path are reserved" };
+      }
+    }
+    for (const obstacle of sceneryObstacles) {
+      if (Math.hypot(x - obstacle.x, y - obstacle.y) < obstacle.radius + 22) {
+        return { valid: false, reason: "blocked by battlefield scenery" };
+      }
+    }
+    for (const tower of towers) {
+      if (Math.hypot(x - tower.x, y - tower.y) < 48) {
+        return { valid: false, reason: "too close to another emplacement" };
+      }
+    }
+    return { valid: true, reason: "clear terrain" };
+  }
+
+  function addCombatEffect(x, y, radius, color, duration = .42) {
+    if (combatEffects.length >= 100) combatEffects.shift();
+    combatEffects.push({ x, y, radius, color, age: 0, life: duration });
+  }
+
+  function defeatEnemy(enemy, x, y) {
+    if (enemy.rewarded) return;
+    enemy.rewarded = true;
+    resources += 28;
+    towerControlsDirty = true;
+    score += 45;
+    addCombatEffect(x, y, 22, "#d5c396", .48);
+  }
+
+  function impactProjectile(projectile, x, y) {
+    if (projectile.splash > 0) {
+      for (const enemy of enemies) {
+        if (enemy.health <= 0) continue;
+        const distance = Math.hypot(enemy.x - x, enemy.y - y);
+        if (enemy === projectile.target || distance <= projectile.splash) {
+          const falloff = enemy === projectile.target ? 1 : Math.max(.25, 1 - distance / projectile.splash * .62);
+          enemy.health -= Math.max(1, Math.round(projectile.damage * falloff));
+          if (enemy.health <= 0) defeatEnemy(enemy, enemy.x, enemy.y);
+        }
+      }
+      addCombatEffect(x, y, projectile.splash, projectile.color, .55);
+      return;
+    }
+    if (projectile.target.health > 0) {
+      projectile.target.health -= projectile.damage;
+      if (projectile.target.health <= 0) defeatEnemy(projectile.target, x, y);
+    }
+    addCombatEffect(x, y, 12, projectile.color, .25);
+  }
+
+  function acquireTarget(tower, stats) {
+    let target = null;
+    for (const enemy of enemies) {
+      if (enemy.health <= 0 || Math.hypot(enemy.x - tower.x, enemy.y - tower.y) > stats.range) continue;
+      if (!target || enemy.progress > target.progress) target = enemy;
+    }
+    return target;
+  }
+
+  function fireTower(tower, target, stats) {
+    tower.cooldown = stats.reload;
+    tower.flash = .1;
+    projectiles.push({
+      x: tower.x,
+      y: tower.y,
+      target,
+      speed: stats.projectileSpeed,
+      damage: stats.damage,
+      splash: stats.splash,
+      color: stats.color,
+      type: tower.type,
+      angle: Math.atan2(target.y - tower.y, target.x - tower.x)
+    });
+  }
+
+  function updateCombat(delta) {
+    towers.forEach((tower) => {
+      const stats = TOWERS[tower.type];
+      tower.cooldown = Math.max(0, tower.cooldown - delta);
+      tower.flash = Math.max(0, tower.flash - delta);
+      const target = acquireTarget(tower, stats);
+      if (!target) return;
+      tower.angle = Math.atan2(target.y - tower.y, target.x - tower.x);
+      if (tower.cooldown <= 0) fireTower(tower, target, stats);
+    });
+
+    for (let index = projectiles.length - 1; index >= 0; index -= 1) {
+      const projectile = projectiles[index];
+      if (projectile.target.health <= 0 || !enemies.includes(projectile.target)) {
+        projectiles.splice(index, 1);
+        continue;
+      }
+      const dx = projectile.target.x - projectile.x;
+      const dy = projectile.target.y - projectile.y;
+      const distance = Math.hypot(dx, dy);
+      const travel = projectile.speed * delta;
+      if (distance <= travel || distance < 1) {
+        projectile.x = projectile.target.x;
+        projectile.y = projectile.target.y;
+        impactProjectile(projectile, projectile.x, projectile.y);
+        projectiles.splice(index, 1);
+      } else {
+        projectile.x += dx / distance * travel;
+        projectile.y += dy / distance * travel;
+        projectile.angle = Math.atan2(dy, dx);
+      }
+    }
+
+    for (let index = combatEffects.length - 1; index >= 0; index -= 1) {
+      const effect = combatEffects[index];
+      effect.age += delta;
+      if (effect.age >= effect.life) combatEffects.splice(index, 1);
+    }
   }
 
   function updateSimulation(deltaSeconds) {
@@ -1012,6 +1269,11 @@
           movement = 0;
         }
       }
+      enemy.progress += enemy.speed * delta - movement;
+      if (enemy.health <= 0) {
+        enemies.splice(index, 1);
+        continue;
+      }
       if (enemy.routeIndex >= ROUTE.length) {
         enemies.splice(index, 1);
         baseHealth = Math.max(0, baseHealth - 1);
@@ -1021,20 +1283,28 @@
           return;
         }
       }
-      if (enemies.length === 0 && enemiesToSpawn === 0) dustParticles.length = 0;
     }
 
-    if (enemiesToSpawn === 0 && enemies.length === 0) {
+    updateCombat(delta);
+    for (let index = enemies.length - 1; index >= 0; index -= 1) {
+      if (enemies[index].health <= 0) enemies.splice(index, 1);
+    }
+    if (enemies.length === 0 && enemiesToSpawn === 0) dustParticles.length = 0;
+
+    if (enemiesToSpawn === 0 && enemies.length === 0 && projectiles.length === 0) {
       if (intermissionTimer === 0) {
         wavesCompleted = wave;
         score += wave * 100;
+        const waveReward = 65 + wave * 20;
+        resources += waveReward;
+        towerControlsDirty = true;
         if (selectedMode === "endless") saveRecord(wavesCompleted);
         if (selectedMode === "campaign" && wave >= CAMPAIGN_WAVES) {
           finishOperation(true);
           return;
         }
         intermissionTimer = 2.5;
-        announce(`Wave ${wave} complete. Next wave in ${intermissionTimer.toFixed(1)} seconds.`);
+        announce(`Wave ${wave} complete. ${waveReward} field credits awarded. Next wave in ${intermissionTimer.toFixed(1)} seconds.`);
       } else {
         intermissionTimer -= delta;
         if (intermissionTimer <= 0) startWave(wave + 1);
@@ -1083,6 +1353,276 @@
       ctx.fill();
     });
     ctx.globalAlpha = 1;
+  }
+
+  function drawTower(ctx, tower, alpha = 1) {
+    const stats = TOWERS[tower.type];
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(tower.x, tower.y);
+    ctx.fillStyle = "rgba(17, 22, 17, .42)";
+    ctx.beginPath();
+    ctx.ellipse(4, 8, 24, 19, -.12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#353e34";
+    ctx.strokeStyle = "#9a9873";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(-20, -11);
+    ctx.lineTo(-14, -19);
+    ctx.lineTo(13, -19);
+    ctx.lineTo(21, -10);
+    ctx.lineTo(18, 14);
+    ctx.lineTo(8, 20);
+    ctx.lineTo(-15, 17);
+    ctx.lineTo(-21, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#73785d";
+    ctx.fillRect(-15, -12, 30, 24);
+    ctx.fillStyle = "rgba(192, 185, 143, .34)";
+    ctx.fillRect(-13, -10, 26, 2);
+    ctx.strokeStyle = "rgba(38, 45, 37, .88)";
+    ctx.lineWidth = 1;
+
+    if (tower.type === "machineGun") {
+      ctx.save();
+      ctx.rotate(tower.angle);
+      ctx.fillStyle = "#555d49";
+      ctx.fillRect(-9, -9, 18, 17);
+      ctx.fillStyle = "#bec098";
+      ctx.fillRect(1, -3, 25, 4);
+      ctx.fillStyle = "#292f2a";
+      ctx.fillRect(19, -4, 7, 6);
+      ctx.fillStyle = "#363d32";
+      ctx.fillRect(-8, 7, 3, 13);
+      ctx.fillRect(6, 7, 3, 13);
+      ctx.fillRect(-2, 9, 3, 11);
+      ctx.fillStyle = "#a9a783";
+      ctx.fillRect(-7, 11, 2, 7);
+      ctx.restore();
+    } else if (tower.type === "heavyCannon") {
+      ctx.fillStyle = "#40483a";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 15, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.rotate(tower.angle);
+      ctx.fillStyle = "#b9ad82";
+      ctx.fillRect(0, -4, 27, 8);
+      ctx.fillStyle = "#343a31";
+      ctx.fillRect(23, -5, 6, 10);
+      ctx.fillStyle = "#8b8b68";
+      ctx.fillRect(-7, -9, 12, 18);
+    } else if (tower.type === "rocketLauncher") {
+      ctx.rotate(tower.angle);
+      ctx.fillStyle = "#424b3d";
+      ctx.fillRect(-13, -15, 22, 30);
+      ctx.strokeRect(-13, -15, 22, 30);
+      for (let pod = -1; pod <= 1; pod += 1) {
+        ctx.fillStyle = "#b5a47a";
+        ctx.fillRect(-3, pod * 8 - 3, 27, 6);
+        ctx.fillStyle = "#30362e";
+        ctx.fillRect(19, pod * 8 - 2, 6, 4);
+      }
+      ctx.fillStyle = "#8d7956";
+      ctx.fillRect(-12, -18, 9, 36);
+    } else if (tower.type === "sniperTower") {
+      ctx.save();
+      ctx.rotate(tower.angle);
+      ctx.fillStyle = "#5b624b";
+      ctx.fillRect(-10, -8, 22, 16);
+      ctx.fillStyle = "#bdb992";
+      ctx.fillRect(-9, -2, 36, 2);
+      ctx.fillStyle = "#242c28";
+      ctx.fillRect(4, -5, 6, 8);
+      ctx.fillStyle = "#a6946c";
+      ctx.fillRect(12, -5, 5, 4);
+      ctx.fillStyle = "#394234";
+      ctx.fillRect(-14, 7, 3, 10);
+      ctx.fillRect(8, 7, 3, 10);
+      ctx.restore();
+    } else if (tower.type === "antiAircraft") {
+      ctx.fillStyle = "#4a5544";
+      ctx.fillRect(-11, -9, 22, 18);
+      ctx.rotate(tower.angle);
+      ctx.fillStyle = "#c0bb8f";
+      ctx.fillRect(-2, -13, 30, 4);
+      ctx.fillRect(-2, 9, 30, 4);
+      ctx.fillStyle = "#31382e";
+      ctx.fillRect(22, -14, 7, 6);
+      ctx.fillRect(22, 8, 7, 6);
+      ctx.fillStyle = "#8c906f";
+      ctx.fillRect(-8, -16, 7, 32);
+    } else {
+      ctx.fillStyle = "#3d4639";
+      ctx.fillRect(-15, -13, 24, 26);
+      ctx.fillStyle = "#282f2a";
+      ctx.fillRect(-18, -14, 4, 28);
+      ctx.fillRect(10, -14, 4, 28);
+      ctx.fillStyle = "#b9ac82";
+      ctx.fillRect(-2, -5, 39, 10);
+      ctx.fillStyle = "#333a31";
+      ctx.fillRect(32, -6, 8, 12);
+      ctx.fillStyle = "#8e8d68";
+      ctx.fillRect(-11, -18, 21, 5);
+      ctx.fillRect(-11, 13, 21, 5);
+    }
+
+    ctx.fillStyle = stats.color;
+    ctx.globalAlpha = alpha * (tower.flash > 0 ? .9 : .65);
+    ctx.fillRect(-17, 15, 6, 2);
+    ctx.restore();
+  }
+
+  function drawProjectiles(ctx) {
+    ctx.lineCap = "round";
+    projectiles.forEach((projectile) => {
+      ctx.save();
+      ctx.translate(projectile.x, projectile.y);
+      ctx.rotate(projectile.angle);
+      ctx.strokeStyle = projectile.color;
+      ctx.fillStyle = projectile.color;
+      ctx.lineWidth = projectile.type === "machineGun" ? 1.6 : 2.8;
+      ctx.globalAlpha = .72;
+      ctx.beginPath();
+      ctx.moveTo(projectile.type === "artillery" ? -18 : -10, 0);
+      ctx.lineTo(projectile.type === "artillery" ? 1 : 2, 0);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.ellipse(4, 0, projectile.type === "rocketLauncher" ? 5 : 3.2, projectile.type === "rocketLauncher" ? 2.6 : 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      if (projectile.type === "rocketLauncher") {
+        ctx.globalAlpha = .48;
+        ctx.fillStyle = "#c5a16f";
+        ctx.beginPath();
+        ctx.moveTo(-2, -2);
+        ctx.lineTo(-11, 0);
+        ctx.lineTo(-2, 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+  }
+
+  function drawCombatEffects(ctx) {
+    combatEffects.forEach((effect) => {
+      const progress = effect.age / effect.life;
+      const alpha = Math.max(0, 1 - progress);
+      if (effect.radius > 30) {
+        ctx.globalAlpha = alpha * .56;
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = 3 + progress * 5;
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, effect.radius * (.22 + progress * .72), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = "#f0d7a2";
+        ctx.globalAlpha = alpha * .48;
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, effect.radius * .16 * (1 - progress * .45), 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.globalAlpha = alpha * .85;
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, effect.radius * (.3 + progress * .8), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSelectedRange(ctx, tower, color) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([7, 6]);
+    ctx.beginPath();
+    ctx.arc(tower.x, tower.y, TOWERS[tower.type].range, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(210, 223, 177, .045)";
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawPlacementPreview(ctx) {
+    if (!selectedTowerType || !pointerWorld || gameState !== "running") return;
+    const stats = TOWERS[selectedTowerType];
+    const validation = validateTowerPlacement(selectedTowerType, pointerWorld.x, pointerWorld.y);
+    placementPreview.x = pointerWorld.x;
+    placementPreview.y = pointerWorld.y;
+    placementPreview.type = selectedTowerType;
+    const preview = placementPreview;
+    const color = validation.valid ? "rgba(207, 227, 158, .58)" : "rgba(222, 113, 94, .72)";
+    drawSelectedRange(ctx, preview, color);
+    ctx.save();
+    ctx.strokeStyle = validation.valid ? "#c8db9c" : "#df7c69";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(preview.x, preview.y, 26, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    drawTower(ctx, preview, .68);
+    ctx.save();
+    ctx.fillStyle = validation.valid ? "#e4e9d2" : "#f0a08d";
+    ctx.font = "700 11px Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(validation.valid ? `${stats.name} · ${stats.cost} CR` : `INVALID · ${validation.reason}`, preview.x, preview.y - stats.range - 11);
+    ctx.restore();
+  }
+
+  function worldFromPointer(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: camera.x + (clientX - rect.left - viewportWidth / 2) / zoom,
+      y: camera.y + (clientY - rect.top - viewportHeight / 2) / zoom
+    };
+  }
+
+  function handleCanvasClick(position) {
+    if (gameState !== "running") return;
+    const existing = towers.find((tower) => Math.hypot(position.x - tower.x, position.y - tower.y) < 27);
+    if (existing) {
+      selectedTower = existing;
+      selectedTowerType = null;
+      placementFeedback = "";
+      towerControlsDirty = true;
+      updateHud();
+      announce(`${TOWERS[existing.type].name} selected. Its range and performance are displayed above the battlefield.`);
+      return;
+    }
+    if (!selectedTowerType) {
+      selectedTower = null;
+      towerControlsDirty = true;
+      updateHud();
+      return;
+    }
+
+    const validation = validateTowerPlacement(selectedTowerType, position.x, position.y);
+    if (!validation.valid) {
+      placementFeedback = `Cannot deploy here: ${validation.reason}. No credits were spent.`;
+      towerControlsDirty = true;
+      updateHud();
+      announce(`Placement rejected: ${validation.reason}. No credits were spent.`);
+      return;
+    }
+
+    const type = selectedTowerType;
+    placementFeedback = "";
+    const tower = { id: nextTowerId, type, x: position.x, y: position.y, angle: 0, cooldown: .2, flash: 0 };
+    nextTowerId += 1;
+    resources -= TOWERS[type].cost;
+    towerControlsDirty = true;
+    towers.push(tower);
+    selectedTower = tower;
+    announce(`${TOWERS[type].name} deployed for ${TOWERS[type].cost} credits. ${resources} credits remain.`);
+    updateHud();
   }
 
   function drawEnemy(ctx, enemy, time) {
@@ -1172,8 +1712,13 @@
     drawSmoke(context, now / 1000);
     drawDust(context);
     drawBase(context);
+    if (selectedTower) drawSelectedRange(context, selectedTower, "rgba(211, 223, 160, .52)");
+    towers.forEach((tower) => drawTower(context, tower));
     const seconds = now / 1000;
     enemies.forEach((enemy) => drawEnemy(context, enemy, seconds));
+    drawProjectiles(context);
+    drawCombatEffects(context);
+    drawPlacementPreview(context);
     context.restore();
 
     if (intermissionTimer > 0 && gameState === "running") {
@@ -1219,12 +1764,38 @@
     settingsDialog.showModal();
   }
 
+  function openTutorial() {
+    if (typeof tutorialDialog.showModal !== "function") {
+      console.error("LAB-Z Frontline Defense could not open the field guide: this browser does not support HTML dialogs.");
+      announce("The field guide is unavailable in this browser.");
+      return;
+    }
+    tutorialResumeAfterClose = gameState === "running";
+    if (tutorialResumeAfterClose) pauseOperation();
+    tutorialDialog.showModal();
+  }
+
+  function selectTowerType(type) {
+    if (!TOWERS[type]) return;
+    selectedTowerType = selectedTowerType === type ? null : type;
+    selectedTower = null;
+    placementFeedback = "";
+    towerControlsDirty = true;
+    updateHud();
+    if (selectedTowerType) {
+      const stats = TOWERS[selectedTowerType];
+      announce(`${stats.name} selected. Cost ${stats.cost} credits; range ${stats.range}.`);
+    } else {
+      announce("Tower placement cancelled.");
+    }
+  }
+
   function onKeyDown(event) {
     const target = event.target;
     if (target instanceof HTMLElement && (target.isContentEditable || ["BUTTON", "INPUT", "SELECT", "TEXTAREA"].includes(target.tagName))) return;
     const key = event.key.toLowerCase();
     if (key === "p" || key === "escape" || key === " ") {
-      if (settingsDialog.open) return;
+      if (settingsDialog.open || tutorialDialog.open) return;
       if (gameState === "running") {
         event.preventDefault();
         pauseOperation();
@@ -1250,6 +1821,15 @@
 
   modeButtons.forEach((button) => button.addEventListener("click", () => setSelectedMode(button.dataset.mode)));
   speedButtons.forEach((button) => button.addEventListener("click", () => setSpeed(Number(button.dataset.speed))));
+  towerOptionButtons.forEach((button) => button.addEventListener("click", () => selectTowerType(button.dataset.tower)));
+  document.querySelector("#cancel-build-button").addEventListener("click", () => {
+    selectedTowerType = null;
+    selectedTower = null;
+    placementFeedback = "";
+    towerControlsDirty = true;
+    updateHud();
+    announce("Tower placement cancelled.");
+  });
   startButton.addEventListener("click", beginOperation);
   document.querySelector("#resume-button").addEventListener("click", resumeOperation);
   pauseButton.addEventListener("click", () => {
@@ -1263,6 +1843,9 @@
   document.querySelector("#result-menu-button").addEventListener("click", returnToMenu);
   settingsButton.addEventListener("click", openSettings);
   document.querySelector("#menu-settings-button").addEventListener("click", openSettings);
+  document.querySelectorAll(".tutorial-button").forEach((button) => button.addEventListener("click", openTutorial));
+  document.querySelector("#tutorial-close-button").addEventListener("click", () => tutorialDialog.close());
+  document.querySelector("#tutorial-done-button").addEventListener("click", () => tutorialDialog.close());
 
   defaultSpeed.value = String(settings.speed);
   terrainDetail.checked = settings.terrainDetail;
@@ -1290,31 +1873,48 @@
     delete settingsDialog.dataset.resumeAfterClose;
     settingsButton.focus({ preventScroll: true });
   });
+  tutorialDialog.addEventListener("close", () => {
+    if (tutorialResumeAfterClose && gameState === "paused") resumeOperation();
+    tutorialResumeAfterClose = false;
+    document.querySelector("#tutorial-reopen-button").focus({ preventScroll: true });
+  });
 
   document.querySelector("#zoom-in-button").addEventListener("click", () => adjustZoom(zoom * 1.15));
   document.querySelector("#zoom-out-button").addEventListener("click", () => adjustZoom(zoom / 1.15));
   canvas.addEventListener("pointerdown", (event) => {
     if (event.button !== 0 || gameState === "ready" || gameState === "won" || gameState === "lost") return;
-    pointerDrag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    pointerDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, moved: false };
+    pointerWorld = worldFromPointer(event.clientX, event.clientY);
     canvas.setPointerCapture(event.pointerId);
     canvas.classList.add("is-dragging");
   });
   canvas.addEventListener("pointermove", (event) => {
-    if (!pointerDrag || pointerDrag.id !== event.pointerId) return;
+    if (!pointerDrag || pointerDrag.id !== event.pointerId) {
+      pointerWorld = worldFromPointer(event.clientX, event.clientY);
+      return;
+    }
+    if (Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY) > 6) pointerDrag.moved = true;
     camera.x -= (event.clientX - pointerDrag.x) / zoom;
     camera.y -= (event.clientY - pointerDrag.y) / zoom;
     pointerDrag.x = event.clientX;
     pointerDrag.y = event.clientY;
     clampCamera();
+    pointerWorld = worldFromPointer(event.clientX, event.clientY);
     updateCameraReadout();
   });
-  const stopDragging = (event) => {
+  const stopDragging = (event, allowClick) => {
     if (!pointerDrag || pointerDrag.id !== event.pointerId) return;
+    const wasClick = allowClick && !pointerDrag.moved;
     pointerDrag = null;
     canvas.classList.remove("is-dragging");
+    pointerWorld = worldFromPointer(event.clientX, event.clientY);
+    if (wasClick) handleCanvasClick(pointerWorld);
   };
-  canvas.addEventListener("pointerup", stopDragging);
-  canvas.addEventListener("pointercancel", stopDragging);
+  canvas.addEventListener("pointerleave", () => {
+    if (!pointerDrag) pointerWorld = null;
+  });
+  canvas.addEventListener("pointerup", (event) => stopDragging(event, true));
+  canvas.addEventListener("pointercancel", (event) => stopDragging(event, false));
   canvas.addEventListener("wheel", (event) => {
     event.preventDefault();
     const rect = canvas.getBoundingClientRect();
